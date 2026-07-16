@@ -199,17 +199,23 @@ function fallbackToAuthProfile(user) {
 // ── Referral System Real-Time Listeners ────────────────────────────────────────
 
 function initReferralSystem(user, userRefCode) {
+  const isSubscribed = localStorage.getItem('hasSubscription') === 'true';
+
   if (refLinkInput) {
-    refLinkInput.value = `https://www.bookmybox.site/?ref=${userRefCode}`;
+    refLinkInput.value = isSubscribed ? `https://www.bookmybox.site/?ref=${userRefCode}` : 'Requires Membership';
   }
 
   if (copyRefBtn) {
     copyRefBtn.onclick = function() {
+      if (!isSubscribed) {
+        alert("You need an active Book My Box membership to get a referral code and earn rewards.");
+        return;
+      }
       const copyUrl = `https://www.bookmybox.site/?ref=${userRefCode}`;
       navigator.clipboard.writeText(copyUrl).then(() => {
         const ogText = copyRefBtn.textContent;
         copyRefBtn.textContent = 'Copied!';
-        showToast('🔗 Local test link copied!', 'success');
+        showToast('🔗 Referral link copied!', 'success');
         setTimeout(() => { copyRefBtn.textContent = ogText; }, 1800);
       }).catch(() => {
         prompt('Copy your referral link:', copyUrl);

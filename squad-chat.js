@@ -339,6 +339,30 @@ function createSquadAction(name, tagline, submitBtn, formEl) {
   submitBtn.textContent = 'Creating...';
   submitBtn.style.pointerEvents = 'none';
 
+  const isSubscribed = localStorage.getItem('hasSubscription') === 'true';
+  const checkSubAndProceed = (hasDbSub) => {
+    if (!hasDbSub && !isSubscribed) {
+      submitBtn.textContent = 'Create Squad';
+      submitBtn.style.pointerEvents = 'auto';
+      showSetupError(formEl, 'You must have an active Book My Box membership to create a squad.');
+      return;
+    }
+    continueCreateAction(name, tagline, submitBtn, formEl);
+  };
+
+  if (database && currentUser) {
+    database.collection('users').doc(currentUser.uid).get().then(doc => {
+      const dbSub = doc.exists && doc.data().hasSubscription === true;
+      checkSubAndProceed(dbSub);
+    }).catch(() => {
+      checkSubAndProceed(false);
+    });
+  } else {
+    checkSubAndProceed(false);
+  }
+}
+
+function continueCreateAction(name, tagline, submitBtn, formEl) {
   const sId = 'squad_' + Date.now();
   const code = generateCode();
   const newSquadObj = {
