@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us — Book My Box</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .about-hero {
+      padding: 120px 24px 60px;
+      text-align: center;
+      position: relative;
+    }
+    .about-title {
+      font-family: 'Anton', sans-serif;
+      font-size: 64px;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    .about-subtitle {
+      color: var(--text-dim);
+      font-size: 18px;
+      max-width: 600px;
+      margin: 0 auto 60px;
+    }
+    .founders-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 32px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .founder-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-line);
+      border-radius: 20px;
+      padding: 40px 32px;
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+    .founder-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 4px;
+      background: var(--lime);
+    }
+    .founder-role {
+      color: var(--lime);
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .founder-name {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 24px;
+    }
+    .founder-desc {
+      color: var(--text-dim);
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .founder-desc strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+    .founder-thanks {
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.5;
+    }
+    .founder-thanks strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+    
+    @media (max-width: 768px) {
+      .about-title { font-size: 48px; }
+      .founders-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="wrap">
+      <nav>
+        <a href="index.html" class="logo"><span class="dot"></span>BOOK MY BOX</a>
+        <div class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="index.html#boxes">Boxes</a>
+          <a href="squad-chat.html">Squad Chat</a>
+        </div>
+        <div class="nav-right">
+          <a href="signin.html" class="btn btn-lime">Sign in</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <section class="about-hero wrap">
+    <h1 class="about-title">The Visionaries<br>Behind The Box</h1>
+    <p class="about-subtitle">We are on a mission to revolutionize how sports venues are booked, making it seamless, social, and accessible for athletes everywhere.</p>
+    
+    <div class="founders-grid">
+      <!-- Founder 1 -->
+      <div class="founder-card">
+        <div class="founder-role">Main CEO & Co-Founder</div>
+        <div class="founder-name">P. Leo Ramesh Sandal</div>
+        <div class="founder-desc">
+          P. Leo Ramesh Sandal's visionary leadership spans across multiple innovative ventures, including <strong>PhysicsVault</strong>, <strong>Aesthetix</strong>, and now spearheading the future of sports with <strong>Book My Box</strong>.
+        </div>
+        <div class="founder-thanks">
+          Heartfelt acknowledgments and deepest gratitude to his father, <strong>P. Ramesh Babu</strong>, his mother, <strong>N. Sucharitha</strong>, and <strong>Tripti Roy</strong> for their continuous support and inspiration.
+        </div>
+      </div>
+
+      <!-- Founder 2 -->
+      <div class="founder-card">
+        <div class="founder-role">Founder & CEO</div>
+        <!-- Update this name directly in HTML if needed -->
+        <div class="founder-name">[Second Founder Name]</div>
+        <div class="founder-desc">
+          Dedicated Founder and CEO exclusively focusing on building, scaling, and leading the vision of <strong>Book My Box</strong> into a premier platform for sports enthusiasts and venue partners alike.
+        </div>
+        <div class="founder-thanks">
+          Heartfelt thanks and endless gratitude to his loving parents, <strong>S. Saritha</strong> and <strong>S. Vishnu Vardhan Reddy</strong>, whose support made this journey possible.
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>
