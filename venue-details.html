@@ -127,8 +127,11 @@
               <strong class="lime-text" id="displayFinalPrice" style="font-size:20px;">₹0</strong>
             </div>
             
-            <button class="btn btn-lime btn-full" id="payAtVenueBtn" style="margin-top:20px; font-size:15px; padding:16px; font-weight:800;">Reserve slot</button>
-            <p style="text-align:center; color:var(--text-dim); font-size:12px; margin-top:12px;" id="reservationHint">No payment now - pay ₹X at the venue</p>
+            <div style="display: flex; gap: 12px; margin-top:20px;">
+              <button class="btn btn-full" id="payAtVenueBtn" style="flex: 1; background: var(--bg); border: 1px solid var(--card-line); color: var(--text); font-size:15px; padding:16px; font-weight:800;">Pay at Venue</button>
+              <button class="btn btn-lime btn-full" id="payOnlineBtn" style="flex: 1; font-size:15px; padding:16px; font-weight:800;">Pay Online</button>
+            </div>
+            <p style="text-align:center; color:var(--text-dim); font-size:12px; margin-top:12px;" id="reservationHint">Reserve your slot now</p>
           </div>
 
         </div>
