@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book My Box — Book Your Box. Stack Your Squad.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+</head>
+
+<body>
+
+  <div class="ticker-bar">
+    <div class="ticker-track mono" id="tickerTrack">
+      <!-- duplicated via JS for seamless loop -->
+    </div>
+  </div>
+
+  <header>
+    <div class="wrap">
+      <nav>
+        <a href="#" class="logo"><span class="dot"></span>BOOK MY BOX</a>
+        <div class="nav-links" id="navLinks">
+          <a href="#boxes">Boxes</a>
+          <a href="#plans">Membership</a>
+          <a href="squad-chat.html">Squad Chat</a>
+          <a href="#offers">Offers</a>
+        </div>
+        <div class="nav-right">
+          <div class="user-global-stats" id="navGlobalStats" style="display: flex; align-items: center; gap: 12px; margin-right: 16px;">
+            <div class="nav-stat-badge" title="Total Matches" style="background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 20px; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+              🏟️ <span id="navMatchCount">0</span>
+            </div>
+          </div>
+          <div class="loc-pill" id="locPill">📍 Detecting...</div>
+          <a href="signin.html" class="btn btn-lime" id="authBtn">Sign in</a>
+          <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="glow"></div>
+
+    <!-- Cricket Animations -->
+    <div class="cricket-scene" aria-hidden="true">
+      <!-- Floating cricket balls -->
+      <svg class="cricket-ball ball-1" viewBox="0 0 40 40" width="40" height="40">
+        <circle cx="20" cy="20" r="18" fill="#e74c3c" />
+        <path d="M8 14c4 6 10 10 18 8" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
+        <path d="M6 22c6 4 14 4 20-2" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
+        <line x1="10" y1="15" x2="9" y2="17" stroke="#fff" stroke-width="0.8" />
+        <line x1="14" y1="17" x2="13" y2="19" stroke="#fff" stroke-width="0.8" />
+        <line x1="18" y1="18" x2="17" y2="20" stroke="#fff" stroke-width="0.8" />
+        <line x1="22" y1="18" x2="21" y2="20" stroke="#fff" stroke-width="0.8" />
+        <line x1="26" y1="17" x2="25" y2="19" stroke="#fff" stroke-width="0.8" />
+      </svg>
+      <svg class="cricket-ball ball-2" viewBox="0 0 40 40" width="28" height="28">
+        <circle cx="20" cy="20" r="18" fill="#e74c3c" />
+        <path d="M8 14c4 6 10 10 18 8" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
+        <path d="M6 22c6 4 14 4 20-2" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
+      </svg>
+      <svg class="cricket-ball ball-3" viewBox="0 0 40 40" width="22" height="22">
+        <circle cx="20" cy="20" r="18" fill="#e74c3c" />
+        <path d="M8 14c4 6 10 10 18 8" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
+        <path d="M6 22c6 4 14 4 20-2" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
+      </svg>
+
+      <!-- Stumps -->
+      <svg class="stumps-icon" viewBox="0 0 60 80" width="50" height="65">
+        <rect x="12" y="10" width="4" height="70" rx="2" fill="#C6FF3D" opacity="0.15" />
+        <rect x="28" y="10" width="4" height="70" rx="2" fill="#C6FF3D" opacity="0.15" />
+        <rect x="44" y="10" width="4" height="70" rx="2" fill="#C6FF3D" opacity="0.15" />
+        <rect x="8" y="10" width="44" height="4" rx="2" fill="#C6FF3D" opacity="0.2" />
+        <rect x="8" y="16" width="44" height="4" rx="2" fill="#C6FF3D" opacity="0.2" />
+      </svg>
+
+      <!-- Bat silhouette -->
+      <svg class="bat-icon" viewBox="0 0 30 100" width="24" height="80">
+        <rect x="10" y="0" width="10" height="55" rx="5" fill="#C6FF3D" opacity="0.12" />
+        <rect x="12" y="55" width="6" height="40" rx="3" fill="#C6FF3D" opacity="0.08" />
+        <rect x="8" y="52" width="14" height="6" rx="2" fill="#C6FF3D" opacity="0.1" />
+      </svg>
+
+      <!-- Hit trajectory arc -->
+      <svg class="hit-arc" viewBox="0 0 300 120" width="300" height="120">
+        <path d="M10 110 Q80 -20 290 30" stroke="var(--lime)" stroke-width="2" fill="none" stroke-dasharray="8 6"
+          opacity="0.15" />
+      </svg>
+
+      <!-- Six! particles -->
+      <div class="six-particles">
+        <span class="particle"></span>
+        <span class="particle"></span>
+        <span class="particle"></span>
+        <span class="particle"></span>
+        <span class="particle"></span>
+        <span class="particle"></span>
+      </div>
+    </div>
+
+    <div class="wrap hero-inner">
+      <div class="eyebrow"><span class="pulse"></span> 40+ BOXES LIVE ACROSS HYDERABAD</div>
+      <h1>BOOK YOUR BOX.<br><span class="stroke">STACK YOUR SQUAD.</span></h1>
+      <p>Cricket boxes, membership discounts, and your crew's group chat — all in one app. No more 11 WhatsApp forwards
+        to lock a slot.</p>
+      <div class="hero-ctas">
+        <button class="btn btn-lime btn-lg">Find a box near me</button>
+        <button class="btn btn-outline btn-lg">See membership plans</button>
+      </div>
+
+      <div class="scoreboard">
+        <div class="score-cell">
+          <div class="num">₹200</div>
+          <div class="lbl">Membership /mo</div>
+        </div>
+        <div class="score-cell">
+          <div class="num">15</div>
+          <div class="lbl">Box visits</div>
+        </div>
+        <div class="score-cell">
+          <div class="num">₹450</div>
+          <div class="lbl">Per hour, members</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section id="boxes">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="tag">// NEARBY BOXES</span>
+          <h2>Boxes near my area</h2>
+        </div>
+        <a href="#" class="see-all">See all boxes →</a>
+      </div>
+
+      <div class="venue-row" id="dynamicVenuesGrid">
+        <!-- Venues will be injected here dynamically by script.js -->
+        <p style="color: var(--text-dim); padding: 20px;">Loading boxes...</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="plans">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="tag">// MEMBERSHIP</span>
+          <h2>Play more, pay less</h2>
+        </div>
+      </div>
+
+      <div class="plans" style="justify-content: center;">
+        <div class="plan" style="max-width: 400px; width: 100%;">
+          <h3>Walk-in Booking</h3>
+          <div class="price-big">₹500 <span>/ hour</span></div>
+          <p class="desc">No commitment, book whenever you want.</p>
+          <ul>
+            <li>Pay-per-session booking</li>
+            <li>Access to all listed boxes</li>
+            <li>Standard slot priority</li>
+          </ul>
+          <button class="btn btn-outline" onclick="document.getElementById('venues').scrollIntoView({behavior: 'smooth'})">Book a Venue</button>
+        </div>
+
+        <div class="plan featured" style="max-width: 400px; width: 100%;">
+          <span class="plan-badge">MOST PICKED</span>
+          <h3>Book My Box Membership</h3>
+          <div class="price-big">₹200 <span>/ month</span></div>
+          <p class="desc">15 sessions a month, unlocked at member pricing.</p>
+          <ul>
+            <li>15 box visits per cycle</li>
+            <li>₹450/hr instead of ₹500</li>
+            <li>Early access to new boxes</li>
+            <li>Priority slot booking</li>
+          </ul>
+          
+          <div style="background: rgba(198,255,61,0.1); border: 1px dashed rgba(198,255,61,0.4); border-radius: 8px; padding: 12px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px;">
+            <span style="font-size: 20px; flex-shrink: 0;">🎁</span>
+            <div style="text-align: left;">
+              <strong style="color: var(--lime); font-size: 13px; display: block; margin-bottom: 4px;">Referral Perk</strong>
+              <span style="font-size: 12px; color: var(--text-dim); line-height: 1.4; display: block;">Free 3 Diet Cokes on your next visit if you refer 10 friends!</span>
+            </div>
+          </div>
+          <button class="btn btn-lime" id="getMembershipBtn">Get membership</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="squad-section" id="squads">
+    <div class="wrap squad-grid">
+      <div class="squad-copy">
+        <span class="tag">// SQUAD WORKSPACE</span>
+        <h2>Three chats.<br><span class="stroke">Zero chaos.</span></h2>
+        <p>Every booking comes with its own workspace — group chat with your crew, direct line to the venue, and a support channel if anything goes sideways.</p>
+
+        <div class="squad-feat">
+          <div class="ico">🏏</div>
+          <div>
+            <h4>Group booking chat</h4>
+            <p>Tied to your booking ID — who's in, slot polls, split payment reminders. Archived automatically after the match.</p>
+          </div>
+        </div>
+        <div class="squad-feat">
+          <div class="ico">📍</div>
+          <div>
+            <h4>Player → Venue direct line</h4>
+            <p>Message the venue manager in one tap. Extra hour? Pitch condition? Gate open? No random phone numbers needed.</p>
+          </div>
+        </div>
+        <div class="squad-feat">
+          <div class="ico">🛟</div>
+          <div>
+            <h4>AntiGravity support chat</h4>
+            <p>Booking issues, refunds, complaints — reach us directly inside the app, linked to your booking context.</p>
+          </div>
+        </div>
+        <div class="squad-feat">
+          <div class="ico">⚡</div>
+          <div>
+            <h4>Real-time · Read receipts · Sub-second</h4>
+            <p>Firebase-powered live sync. Messages persist server-side — survives reinstalls, offline queuing built in.</p>
+          </div>
+        </div>
+        <a href="squad-chat.html" class="btn btn-lime" style="margin-top:10px; display:inline-flex; align-items:center; gap:8px;">
+          Open Squad Workspace
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+
+      <div class="chat-mock-wrap">
+        <!-- Tab switcher -->
+        <div class="mock-tabs">
+          <button class="mock-tab active" onclick="switchMockTab(this,'group')">🏏 Group</button>
+          <button class="mock-tab" onclick="switchMockTab(this,'venue')">📍 Venue</button>
+          <button class="mock-tab" onclick="switchMockTab(this,'support')">🛟 Support</button>
+        </div>
+
+        <!-- Group Chat Mock -->
+        <div class="chat-mock mock-pane" id="mockGroup">
+          <!-- Pinned booking context -->
+          <div class="mock-booking-pin">
+            <span class="pin-label">📌 BOOKING</span>
+            <span class="pin-venue">Strikers Box Arena · Today 7 PM</span>
+            <span class="pin-split">₹75 / person</span>
+          </div>
+          <div class="chat-head">
+            <div class="avatar-stack">
+              <div class="av"></div><div class="av"></div><div class="av"></div><div class="av"></div>
+            </div>
+            <div>
+              <div class="name">Vanasthalipuram Strikers</div>
+              <div class="sub">6 members · 🟢 4 online</div>
+            </div>
+          </div>
+          <div class="bubble in">Bro Strikers Box free saturday 7pm? 🏏</div>
+          <div class="bubble out">Booked already 😤 lock it</div>
+          <div class="poll">
+            <div class="q">📊 Sunday match time?</div>
+            <div class="poll-opt"><span>7:00 AM</span><span>2 votes</span></div>
+            <div class="poll-bar"><div style="width:33%"></div></div>
+            <div class="poll-opt" style="margin-top:6px"><span>6:00 PM 🔥</span><span>4 votes</span></div>
+            <div class="poll-bar"><div style="width:67%; background: linear-gradient(90deg,#C6FF3D,#3DE8FF)"></div></div>
+          </div>
+          <div class="mock-readreceipt">✓✓ Seen by 5</div>
+        </div>
+
+        <!-- Venue Chat Mock -->
+        <div class="chat-mock mock-pane" id="mockVenue" style="display:none">
+          <div class="mock-booking-pin" style="border-color: rgba(61,232,255,0.3); background: rgba(61,232,255,0.05);">
+            <span class="pin-label" style="color:var(--cyan)">🏟️ VENUE</span>
+            <span class="pin-venue">Strikers Box Arena</span>
+            <span class="pin-split" style="color:var(--cyan)">Manager: Ravi K.</span>
+          </div>
+          <div class="chat-head">
+            <div class="av" style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--cyan),#1bbde0);color:#0B1210;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;">SBA</div>
+            <div>
+              <div class="name">Strikers Box Arena</div>
+              <div class="sub">⭐ 4.8 · Typically replies in &lt;10 min</div>
+            </div>
+          </div>
+          <div class="bubble in" style="background: rgba(61,232,255,0.08); border-color: rgba(61,232,255,0.2);">Hey, can we extend the slot by 30 min to 8:30 PM?</div>
+          <div class="bubble" style="background:rgba(255,255,255,0.06); border:1px solid var(--card-line); border-bottom-left-radius:4px; max-width:78%; padding:10px 14px; border-radius:14px; font-size:13.5px; margin-bottom:10px;">Hi! Yes, 8:30 PM is available. Extra 30 min = ₹250 total. Want me to update your booking? 👍</div>
+          <div class="bubble out">Yes please, confirm it!</div>
+          <div class="venue-whatsapp-pill">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            Also reachable on WhatsApp
+          </div>
+        </div>
+
+        <!-- Support Chat Mock -->
+        <div class="chat-mock mock-pane" id="mockSupport" style="display:none">
+          <div class="mock-booking-pin" style="border-color: rgba(255,59,48,0.3); background: rgba(255,59,48,0.05);">
+            <span class="pin-label" style="color:var(--red)">🎫 SUPPORT</span>
+            <span class="pin-venue">Booking #BMB-7291</span>
+            <span class="pin-split" style="color:var(--red)">Open ticket</span>
+          </div>
+          <div class="chat-head">
+            <div class="av" style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#FF3B30,#cc2a1f);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;">AG</div>
+            <div>
+              <div class="name">AntiGravity Support</div>
+              <div class="sub">🟢 Online · Avg response 3 min</div>
+            </div>
+          </div>
+          <div class="bubble" style="background:rgba(255,59,48,0.08); border:1px solid rgba(255,59,48,0.2); border-bottom-left-radius:4px; max-width:78%; padding:10px 14px; border-radius:14px; font-size:13.5px; margin-bottom:10px;">Hi! I see your booking #BMB-7291 at Strikers Box Arena. How can I help? 👋</div>
+          <div class="bubble out">The venue was closed when we arrived — need a refund</div>
+          <div class="bubble" style="background:rgba(255,255,255,0.06); border:1px solid var(--card-line); border-bottom-left-radius:4px; max-width:78%; padding:10px 14px; border-radius:14px; font-size:13.5px; margin-bottom:10px;">Really sorry about that! I'm raising a full refund right now — you'll see it in 24 hrs. ✅</div>
+          <div class="mock-readreceipt" style="color: var(--red)">🎫 Ticket #7291 · Refund initiated</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="offers">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="tag">// OFFERS</span>
+          <h2>Deals running right now</h2>
+        </div>
+      </div>
+      <div class="offer-grid">
+        <div class="offer-card c1">
+          <span class="tag2">Partnership</span>
+          <h3>Free 1 Month Subscription</h3>
+          <p>Buy an Aesthetixs t-shirt and get a one month free subscription. <a href="http://www.aesthetixs.online" target="_blank" style="color: var(--cyan); text-decoration: underline;">Shop at www.aesthetixs.online</a></p>
+        </div>
+        <div class="offer-card c4" id="homeReferralCard">
+          <span class="tag2" style="color: var(--lime);">Refer & Earn</span>
+          <h3>Unlock Free Cokes</h3>
+          <p>Refer 10 friends who subscribe → get 3 free Diet Cokes on your next box visit.</p>
+          
+          <div class="ref-progress-container" style="margin-top: 18px;">
+            <div class="ref-progress-header" style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 8px;">
+              <span>Your Progress</span>
+              <span id="homeRefProgressLabel" style="color: var(--text-dim);">Sign in to track</span>
+            </div>
+            <div class="progress-bar-bg" style="background: rgba(255,255,255,0.06); height: 8px; border-radius: 10px; overflow: hidden;">
+              <div class="progress-bar-fill" id="homeRefProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--lime), var(--cyan)); border-radius: 10px; transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);"></div>
+            </div>
+          </div>
+          
+          <div class="ref-link-box" style="margin-top: 16px; display: flex; gap: 8px;">
+            <input type="text" id="homeRefLinkInput" value="bookmybox.com/ref/..." readonly style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--card-line); padding: 8px 12px; border-radius: 8px; color: var(--text-dim); font-size: 12px; outline: none; min-width: 0; font-family: 'Space Mono', monospace;">
+            <button class="btn btn-lime" id="homeCopyRefBtn" style="padding: 8px 14px; font-size: 12px; border-radius: 8px; display: flex; align-items: center; gap: 4px;" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <footer>
+    <div class="wrap">
+      <div class="footer-top">
+        <a href="#" class="logo"><span class="dot"></span>BOOK MY BOX</a>
+        <div class="foot-links">
+          <a href="#boxes">Boxes</a>
+          <a href="#plans">Membership</a>
+          <a href="#squads">Squads</a>
+          <a href="#offers">Offers</a>
+        </div>
+      </div>
+      <div class="foot-bottom">
+        <span>© 2026 Book My Box. Built for Hyderabad's box cricket crews.</span>
+        <span>Vanasthalipuram · LB Nagar · Dilsukhnagar · Uppal</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Membership Checkout Modal -->
+  <div id="checkoutModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+    <div class="modal-content" style="background: var(--card); border: 1px solid var(--card-line); border-radius: 20px; width: 90%; max-width: 400px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); position: relative;">
+      <button id="closeCheckoutBtn" style="position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--text-dim); font-size: 24px; cursor: pointer;">&times;</button>
+      <h3 style="margin-top: 0; font-family: 'Manrope', sans-serif; font-size: 20px; font-weight: 800;">Get PRO Membership</h3>
+      <p style="color: var(--text-dim); font-size: 14px; margin-bottom: 24px;">15 sessions/month at locked-in member rates.</p>
+      
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-line); padding: 16px; border-radius: 12px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span style="color: var(--text-dim); font-size: 14px;">Total due today</span>
+          <span style="font-weight: 700; font-family: 'Space Mono', monospace;">₹200</span>
+        </div>
+      </div>
+      
+
+      
+      <button id="confirmCheckoutBtn" class="btn btn-lime btn-full" style="width: 100%; font-size: 16px; padding: 14px;">Pay ₹200 & Subscribe</button>
+    </div>
+  </div>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="script.js"></script>
+
+  <script>
+    // Geolocation — request on load and update nav pill
+    (function () {
+      const pill = document.getElementById('locPill');
+      const boxesHeading = document.querySelector('#boxes h2');
+
+      function updateLocation(areaName) {
+        pill.textContent = '📍 ' + areaName;
+        if (boxesHeading) {
+          boxesHeading.textContent = 'Boxes near ' + areaName.split(',')[0];
+        }
+        // Save for next visit
+        localStorage.setItem('bmb_location', areaName);
+      }
+
+      // Check if we have a cached location
+      const cached = localStorage.getItem('bmb_location');
+      if (cached) {
+        updateLocation(cached);
+      }
+
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          function (position) {
+            var lat = position.coords.latitude;
+            var lon = position.coords.longitude;
+
+            // Reverse geocode using OpenStreetMap Nominatim (free, no key)
+            fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&zoom=16&addressdetails=1')
+              .then(function (res) { return res.json(); })
+              .then(function (data) {
+                var addr = data.address || {};
+                var area = addr.suburb || addr.neighbourhood || addr.village || addr.town || addr.city_district || '';
+                var city = addr.city || addr.state_district || addr.state || '';
+
+                // Build short display name
+                var display = area ? (area + ', ' + city) : city;
+                if (!display) display = 'Hyderabad';
+
+                updateLocation(display);
+              })
+              .catch(function () {
+                if (!cached) updateLocation('Hyderabad');
+              });
+          },
+          function (err) {
+            // Permission denied or error
+            if (!cached) updateLocation('Hyderabad');
+          },
+          { enableHighAccuracy: false, timeout: 8000 }
+        );
+      } else {
+        if (!cached) updateLocation('Hyderabad');
+      }
+    })();
+  </script>
+
+  <script>
+    // Squad section tab switcher
+    function switchMockTab(btn, tabId) {
+      // Update tabs
+      document.querySelectorAll('.mock-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      // Update panes
+      document.querySelectorAll('.mock-pane').forEach(p => p.style.display = 'none');
+      document.getElementById('mock' + tabId.charAt(0).toUpperCase() + tabId.slice(1)).style.display = 'block';
+    }
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Box Owner Portal — Book My Box</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=1">
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <style>
+    .panel-container { max-width: 900px; margin: 40px auto; padding: 20px; }
+    #loginOverlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+    .login-box { background: var(--card); border: 1px solid var(--card-line); padding: 32px; border-radius: 16px; width: 100%; max-width: 360px; text-align: center; }
+    .slot-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border: 1px solid var(--card-line); padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; }
+    .slot-status { font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 4px; }
+    .status-available { background: rgba(198,255,61,0.1); color: var(--lime); }
+    .status-booked { background: rgba(255,59,48,0.1); color: var(--red); }
+  </style>
+</head>
+<body>
+
+  <!-- Login Overlay -->
+  <div id="loginOverlay">
+    <div class="login-box">
+      <h2 style="font-family: 'Anton', sans-serif; font-size: 24px; margin-bottom: 8px;">BOX OWNER LOGIN</h2>
+      <p style="color: var(--text-dim); margin-bottom: 24px; font-size: 14px;">Enter your credentials to manage your venue slots</p>
+      <input type="text" id="ownerUsername" placeholder="Username" style="width: 100%; background: var(--bg); border: 1px solid var(--card-line); padding: 12px 16px; border-radius: 100px; color: var(--text); font-family: 'Manrope', sans-serif; margin-bottom: 12px; outline: none;">
+      <input type="password" id="ownerPassword" placeholder="Password" style="width: 100%; background: var(--bg); border: 1px solid var(--card-line); padding: 12px 16px; border-radius: 100px; color: var(--text); font-family: 'Manrope', sans-serif; margin-bottom: 16px; outline: none;">
+      <button class="btn btn-lime btn-full" id="loginBtn">Login</button>
+      <div id="loginError" style="color: var(--red); font-size: 13px; margin-top: 12px; display: none;">Invalid username or password</div>
+    </div>
+  </div>
+
+  <div class="panel-container" id="mainDashboard" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+      <div>
+        <h1 style="font-family: 'Anton', sans-serif; font-size: 32px; margin: 0; text-transform: uppercase;" id="headerVenueName">MY VENUE</h1>
+        <p style="color: var(--text-dim); margin: 4px 0 0 0;" id="headerVenueMeta">Manage your slots and bookings</p>
+      </div>
+      <a href="#" class="btn btn-outline" id="boxLogoutBtn">Logout</a>
+    </div>
+
+    <div style="background: var(--card); border: 1px solid var(--card-line); border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+      <h3 style="margin-bottom: 16px;">Set Box Price</h3>
+      <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 16px;">Update your hourly booking price. This instantly syncs to the homepage.</p>
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <span style="font-weight: 700; font-size: 20px;">₹</span>
+        <input type="number" id="ownerPriceInput" placeholder="500" style="width: 120px; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--card-line); background: var(--bg); color: var(--text); outline: none; font-weight: 700;">
+        <span style="color: var(--text-dim);">/ hr</span>
+        <button class="btn btn-lime" id="updatePriceBtn" style="padding: 10px 20px; margin-left: 12px;">Update Price</button>
+      </div>
+    </div>
+
+    <div style="background: var(--card); border: 1px solid var(--card-line); border-radius: 16px; padding: 24px; margin-bottom: 40px;">
+      <h3 style="margin-bottom: 16px;">Master Operating Schedule</h3>
+      <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 20px;">Select the hours your box is open every day. Green means open, grey means closed.</p>
+      
+      <div id="slotToggleContainer" style="padding-top: 12px;">
+        <div style="display: flex; gap: 16px; margin-bottom: 16px; font-size: 12px;">
+          <span style="display: flex; align-items: center; gap: 6px;"><div style="width:12px; height:12px; background:rgba(198,255,61,0.1); border:1px solid var(--lime); border-radius:3px;"></div> Open (Available)</span>
+          <span style="display: flex; align-items: center; gap: 6px;"><div style="width:12px; height:12px; background:var(--bg); border:1px solid var(--card-line); border-radius:3px;"></div> Closed</span>
+        </div>
+        
+        <div id="slotsToggleGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;">
+          <!-- Buttons injected by JS -->
+        </div>
+      </div>
+    </div>
+
+    <div style="background: var(--card); border: 1px solid var(--card-line); border-radius: 16px; padding: 24px;">
+      <h3 style="margin-bottom: 16px;">View Bookings</h3>
+      <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 20px;">Select a date to see who has booked your box.</p>
+      
+      <div class="form-group" style="max-width: 300px; margin-bottom: 24px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-dim); margin-bottom: 6px; display: block;">Select Date</label>
+        <input type="date" id="viewBookingsDate" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--card-line); background: var(--bg); color: var(--text); outline: none;">
+      </div>
+
+      <div id="bookingsList" style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="color: var(--text-dim); padding: 20px 0; border-top: 1px dashed var(--card-line);">
+          Please select a date above.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="firebase-config.js?v=4"></script>
+  <script src="box-panel.js?v=1"></script>
+</body>
+</html>

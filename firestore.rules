@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users can read/edit their own profile only.
+    // pushNotifications, name, instagram, phone are user-editable.
+    // visitsUsed/visitsTotal/plan/referralCode etc. should be written
+    // by a trusted backend (Cloud Function / admin SDK) only — block
+    // client writes to those fields here if you want to be strict.
+    match /users/{uid} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Squads: members can read; creation/membership changes should
+    // go through a Cloud Function if you want to validate squad size etc.
+    match /squads/{squadId} {
+      allow read: if request.auth != null &&
+        request.auth.uid in resource.data.memberIds;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null &&
+        request.auth.uid in resource.data.memberIds;
+    }
+
+    // Referrals: the referrer can read their own referral docs.
+    // Clients may create a "clicked" or "signed_up" doc, but must NEVER
+    // be able to write status: "confirmed" themselves — that has to be
+    // set by a Cloud Function reacting to your subscription/payment
+    // webhook, or anyone can fake 10 referrals from devtools.
+    match /referrals/{referralId} {
+      allow read: if request.auth != null &&
+        request.auth.uid == resource.data.referrerId;
+      allow create: if request.auth != null &&
+        request.resource.data.status in ["clicked", "signed_up"];
+      allow update: if false; // status changes go through backend only
+    }
+    
+    // Venues: anyone can read. MVP allows public write for the admin dash.
+    match /venues/{venueId} {
+      allow read, write: if true;
+      
+      // Slots subcollection
+      match /slots/{slotId} {
+        allow read, write: if true;
+      }
+    }
+    
+    // Box Owners: MVP allows public read/write for the admin dash.
+    match /box_owners/{ownerId} {
+      allow read, write: if true;
+    }
+  }
+}

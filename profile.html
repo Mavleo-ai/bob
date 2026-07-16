@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Profile Dashboard — Book My Box</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="profile.css">
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+</head>
+<body class="dark-theme">
+
+  <nav class="navbar" style="position: sticky; top: 0; z-index: 100; background: rgba(11,18,16,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--card-line); padding: 14px 0;">
+    <div class="wrap nav-flex" style="justify-content: flex-start; gap: 16px;">
+      <a href="javascript:history.length > 1 ? history.back() : window.location.href='index.html'" class="btn btn-outline" style="border-radius:50%; padding:10px 10px; display: flex; align-items: center; justify-content: center; height: 38px; width: 38px;" title="Go Back">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      </a>
+      <a href="index.html" class="logo"><span class="dot"></span>BOOK MY BOX</a>
+    </div>
+  </nav>
+
+  <section class="profile-dashboard-section">
+    <div class="wrap dashboard-wrap">
+      
+      <!-- Left Column: Identity & Membership -->
+      <div class="dash-col main-col">
+        
+        <!-- Identity Header -->
+        <div class="dash-card identity-card">
+          <div class="profile-banner">
+            <div class="banner-overlay"></div>
+            <div class="badge-pro" id="memberBadge" title="Active PRO Member" style="display:none;">PRO Member</div>
+          </div>
+          <div class="profile-body">
+            <div class="avatar-edit-wrapper">
+              <div class="avatar-preview" id="avatarPreview">
+                <span id="avatarInitials">··</span>
+              </div>
+              <label for="avatarUpload" class="avatar-edit-overlay"><span>Change</span></label>
+              <input type="file" id="avatarUpload" accept="image/png, image/jpeg, image/webp" style="display: none;">
+            </div>
+            
+            <!-- Skeleton placeholders while loading -->
+            <h3 id="profileName" class="profile-name profile-skeleton">·····</h3>
+            <div class="profile-handle" id="profileHandle" style="opacity:0.4;">@···</div>
+            
+            <!-- Instagram display field -->
+            <div class="profile-insta" id="profileInsta" style="font-size: 13.5px; color: #E1306C; margin-top: 6px; display: none; align-items: center; gap: 6px; font-weight: 700;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="stroke: #E1306C;"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+              <span id="profileInstaText">@username</span>
+            </div>
+            
+            <p id="profileEmail" class="profile-email" style="opacity:0.4; margin-top:8px;">···</p>
+            
+            <div class="identity-meta">
+              <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> <span id="homeGround">Hyderabad</span></span>
+              <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Member since <span id="memberSince">—</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Membership Panel -->
+        <div class="dash-card">
+          <div class="card-header">
+            <h3>Membership Status</h3>
+            <span class="status-badge active" id="memberStatusBadge">Active</span>
+          </div>
+          <div class="card-body">
+            <div class="membership-info">
+              <div class="plan-type">Monthly PRO • <span class="rate">₹450/hr locked rate</span></div>
+              <div class="cycle-dates">Current Cycle: <span id="cycleStart">Jul 1</span> - <span id="cycleEnd">Jul 31</span></div>
+            </div>
+            
+            <div class="visit-tracker-container">
+              <div class="tracker-header">
+                <!-- FIX #6: clarified label — Visits = box bookings this cycle -->
+                <span class="tracker-title">Box visits this cycle</span>
+                <span class="tracker-count"><span id="visitsUsed" class="highlight">0</span> / 15 used</span>
+              </div>
+              <div class="dot-tracker" id="dotTracker">
+                <!-- Dots generated via JS -->
+              </div>
+            </div>
+            
+            <div class="card-actions">
+              <button class="btn btn-lime" id="upgradePlanBtn">Upgrade Plan</button>
+              <button class="btn btn-outline" id="pauseMembershipBtn">Pause Membership</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Booking History -->
+        <div class="dash-card">
+          <div class="card-header">
+            <h3>Booking History</h3>
+          </div>
+          <div class="card-body p-0">
+            <div class="booking-list" id="bookingHistoryList">
+              <!-- Rendered by JS — shows real data or empty state -->
+            </div>
+            <a href="history.html" class="btn-text-full" style="display:block; text-align:center; text-decoration:none;">View All History</a>
+          </div>
+        </div>
+
+      </div>
+      
+      <!-- Right Column: Stats, Squads, Settings -->
+      <div class="dash-col side-col">
+        
+        <!-- Stat Strip -->
+        <div class="dash-card">
+          <div class="stats-grid" style="grid-template-columns: repeat(5, 1fr);">
+            <div class="grid-stat">
+              <div class="stat-lbl">Visits Left</div>
+              <div class="stat-val" id="profileVisitsLeft">—</div>
+            </div>
+            <div class="grid-stat">
+              <div class="stat-lbl">Wallet</div>
+              <div class="stat-val highlight" id="profileWallet" style="color:var(--cyan);">₹0</div>
+            </div>
+            <div class="grid-stat">
+              <div class="stat-lbl">Squads</div>
+              <div class="stat-val" id="profileSquads">—</div>
+            </div>
+            <div class="grid-stat" title="Total squad matches played">
+              <div class="stat-lbl">Matches</div>
+              <div class="stat-val" id="profileMatches">—</div>
+              <div style="font-size: 9.5px; color: var(--text-dim); margin-top: 3px; font-weight: 500;">Squad games played</div>
+            </div>
+            <div class="grid-stat">
+              <div class="stat-lbl">Referrals</div>
+              <div class="stat-val highlight" id="profileReferrals" style="color:var(--lime);">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- My Squads -->
+        <div class="dash-card">
+          <div class="card-header">
+            <h3>My Squads</h3>
+            <a href="squad-chat.html?action=create" class="btn btn-outline" style="padding:5px 12px;font-size:12px;">+ Join / Create</a>
+          </div>
+          <div class="card-body p-0">
+            <div class="squad-list" id="mySquadsList">
+              <div class="empty-state">
+                <div class="empty-icon">🏏</div>
+                <div class="empty-text">Loading squads…</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Refer & Earn Card -->
+        <div class="dash-card">
+          <div class="card-header" style="justify-content: space-between; align-items: center;">
+            <h3>Refer & Earn</h3>
+            <button class="btn btn-outline" id="refInfoBtn" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; border-color: rgba(255,255,255,0.15);">ℹ️ How it works</button>
+          </div>
+          <div class="card-body">
+            <p class="ref-desc" style="font-size: 13px; color: var(--text-dim); line-height: 1.5; margin-bottom: 16px;">
+              Refer 10 friends who subscribe → get 3 Free Diet Cokes on your next box visit.
+            </p>
+            
+            <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--lime); margin-bottom: 6px;">Your Referral Link</label>
+            <div class="ref-link-box" style="margin-bottom: 20px;">
+              <input type="text" id="refLinkInput" value="https://bookmybox.com/ref/..." readonly>
+              <button class="btn btn-lime" id="copyRefBtn">Copy</button>
+            </div>
+            
+            <!-- Progress Tracker -->
+            <div class="ref-progress-container" style="margin-bottom: 24px;">
+              <div class="ref-progress-header" style="display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 700; margin-bottom: 8px;">
+                <span>Current Cycle Progress</span>
+                <span id="refProgressLabel" style="color: var(--text-dim);">0/10 confirmed referrals</span>
+              </div>
+              <div class="progress-bar-bg" style="background: rgba(255,255,255,0.06); height: 10px; border-radius: 10px; overflow: hidden;">
+                <div class="progress-bar-fill" id="refProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--lime), var(--cyan)); border-radius: 10px; transition: width 0.4s ease;"></div>
+              </div>
+            </div>
+
+            <!-- Unlocked Rewards -->
+            <div class="rewards-section" id="rewardsSection" style="display: none; margin-bottom: 24px; border-top: 1px solid var(--card-line); padding-top: 16px;">
+              <span style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--lime); margin-bottom: 10px; letter-spacing: 0.5px;">🎁 Unlocked Rewards</span>
+              <div class="rewards-list" id="rewardsList" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+
+            <!-- Referral Funnel History -->
+            <div class="referrals-section" style="border-top: 1px solid var(--card-line); padding-top: 16px;">
+              <span style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; letter-spacing: 0.5px;">Referral History</span>
+              <div class="referral-list" id="referralsList">
+                <div class="empty-state" style="padding: 16px;">
+                  <div class="empty-text" style="font-size: 12.5px;">No invites yet. Share your link to start earning!</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Settings & Danger Zone -->
+        <div class="dash-card">
+          <div class="card-header">
+            <h3>Account Settings</h3>
+          </div>
+          <div class="card-body">
+            
+            <div class="settings-form">
+              <div class="form-group">
+                <label>Display Name</label>
+                <input type="text" id="settingName" placeholder="Your Name">
+              </div>
+              <div class="form-group">
+                <label>Instagram Handle</label>
+                <input type="text" id="settingInsta" placeholder="@username">
+              </div>
+              <!-- FIX #8: shows real saved phone number, placeholder only if empty -->
+              <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="settingPhone" placeholder="+91 — not set">
+              </div>
+            </div>
+
+            <div class="settings-toggles">
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-title">Push Notifications</div>
+                  <div class="toggle-desc">Booking reminders & squad activity</div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" checked id="togglePush">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            
+            <hr class="card-divider">
+            
+            <button class="btn btn-lime btn-full" id="saveSettingsBtn" style="margin-bottom: 24px;">Save Settings</button>
+
+            <h4 class="danger-title">Danger Zone</h4>
+            <!-- FIX #2: Dev simulate button REMOVED from production UI -->
+            <button id="signOutBtn" class="btn btn-outline btn-full sign-out-btn">Sign Out</button>
+            <!-- FIX #9: Delete Account now triggers a double-confirm modal, not single click -->
+            <button id="deleteAccountBtn" class="btn btn-outline btn-full delete-btn">Delete Account</button>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </section>
+
+  <div class="modal-overlay" id="customAlertModal" style="display:none; z-index: 9999;">
+    <div class="modal-card" style="max-width:380px; text-align: center; padding: 32px 24px;">
+      <div id="alertIcon" style="font-size: 40px; margin-bottom: 16px;">⚠️</div>
+      <h3 id="alertTitle" style="margin-bottom: 12px; font-size: 20px;">Confirm Action</h3>
+      <p id="alertMessage" style="color: var(--text-dim); margin-bottom: 24px; font-size: 14px; line-height: 1.5;">Are you sure?</p>
+      <div style="display: flex; gap: 12px; flex-direction: column;">
+        <button class="btn btn-lime btn-full" id="alertConfirmBtn" style="background: var(--red); color: white; border: none;">Yes</button>
+        <button class="btn btn-outline btn-full" id="alertCancelBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Modal / Tooltip explaining referral states -->
+  <div class="modal-overlay" id="infoModal" style="display:none;">
+    <div class="modal-card" style="max-width:440px;">
+      <div class="modal-header">
+        <h3>ℹ️ How Referrals Work</h3>
+        <button class="modal-close" id="closeInfoBtn">&times;</button>
+      </div>
+      <div style="padding:24px; font-size:13.5px; line-height:1.6; color:var(--text-dim);">
+        <p style="margin-bottom:16px;">Track your friends through three simple stages:</p>
+        <ul style="padding-left:20px; margin-bottom:20px; display:flex; flex-direction:column; gap:12px; list-style-type: none;">
+          <li>
+            <strong style="color:var(--text);">🔗 Clicked</strong><br>
+            They opened your link but haven't signed up yet.
+          </li>
+          <li>
+            <strong style="color:var(--cyan);">👤 Signed up</strong><br>
+            They created a free account. Not yet counted for reward.
+          </li>
+          <li>
+            <strong style="color:var(--lime);">✅ Confirmed</strong><br>
+            They subscribed to a paid membership! Counts towards your 10.
+          </li>
+        </ul>
+        <p style="border-top: 1px solid var(--card-line); padding-top:14px; font-size:12.5px; font-style:italic;">
+          * Note: Self-referrals are automatically blocked. Rewards are valid for 60 days once unlocked.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pause Membership Modal -->
+  <div class="modal-overlay" id="pauseModal" style="display:none;">
+    <div class="modal-card" style="max-width:440px;">
+      <div class="modal-header">
+        <h3>⏸️ Pause Membership</h3>
+        <button class="modal-close" id="closePauseBtn">&times;</button>
+      </div>
+      <div style="padding:24px;">
+        <p style="color:var(--text-dim);margin-bottom:16px;font-size:14px;line-height:1.5;">
+          Are you sure you want to pause your membership? Here is how it works:
+        </p>
+        <ul style="padding-left:20px; margin-bottom:20px; display:flex; flex-direction:column; gap:8px; list-style-type: disc; color:var(--text-dim); font-size:13.5px; line-height:1.5;">
+          <li>Your billing will be suspended immediately.</li>
+          <li>You will not be charged for the upcoming billing cycle.</li>
+          <li>Your unused box visits will be frozen and saved for when you resume.</li>
+          <li>You can resume at any time with a single click.</li>
+        </ul>
+        <div style="display:flex; gap:12px; margin-top:24px;">
+          <button id="cancelPauseBtn" class="btn btn-outline" style="flex:1;">Cancel</button>
+          <button id="confirmPauseBtn" class="btn btn-lime" style="flex:1; background:#FFA500; color:#0B1210;">Yes, Pause</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upgrade Membership Modal -->
+  <div class="modal-overlay" id="upgradeModal" style="display:none;">
+    <div class="modal-card" style="max-width:440px;">
+      <div class="modal-header">
+        <h3>⚡ Upgrade Plan</h3>
+        <button class="modal-close" id="closeUpgradeBtn">&times;</button>
+      </div>
+      <div style="padding:24px;">
+        <p style="color:var(--text-dim);margin-bottom:20px;font-size:14px;line-height:1.5;">
+          Select a plan to upgrade your membership instantly. Your locked rate will update.
+        </p>
+        <div style="margin-bottom:20px; padding:12px; border-radius:8px; background:rgba(61,232,255,0.1); border:1px solid rgba(61,232,255,0.2);">
+          <span style="font-size:12px; color:var(--text-dim); text-transform:uppercase; font-weight:700; display:block; margin-bottom:4px;">Current Plan</span>
+          <strong id="currentPlanModalLabel" style="color:var(--cyan); font-size:14.5px;">Loading...</strong>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
+          <div onclick="selectUpgradePlan('Basic PRO', 15, '₹400/hr locked rate')" style="background:var(--bg); border:1px solid var(--card-line); border-radius:12px; padding:16px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--lime)'" onmouseout="this.style.borderColor='var(--card-line)'">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <strong style="color:var(--text); font-size:15px;">Basic PRO 🔥</strong>
+              <span style="color:var(--lime); font-weight:800; font-family:'Space Mono';">₹200/mo</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-dim);">15 box visits per month · ₹400/hr locked rate</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="firebase-config.js"></script>
+
+
+  <script src="profile.js"></script>
+</body>
+</html>

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Squad Chat — Book My Box</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=2">
+<link rel="stylesheet" href="squad-chat.css?v=2">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="chat-app">
+
+  <!-- Squad Setup Screen (Shown when no squad is loaded) -->
+  <div class="squad-setup-screen" id="squadSetupScreen">
+    <div class="setup-card">
+      <div class="setup-logo"><span class="dot"></span>BOOK MY BOX</div>
+      <h2>Squad Workspace</h2>
+      <p>Create a squad to start chatting, voting on match times, and splitting box booking bills.</p>
+
+      <div class="setup-tabs">
+        <button class="tab-btn active" id="tabCreateBtn">Create Squad</button>
+        <button class="tab-btn" id="tabJoinBtn">Join Squad</button>
+      </div>
+
+      <!-- Create Squad Pane -->
+      <div class="setup-pane" id="paneCreate">
+        <form id="setupCreateForm">
+          <div class="form-group">
+            <label for="setupSquadName">Squad Name</label>
+            <input type="text" id="setupSquadName" placeholder="e.g. Vanasthalipuram Strikers" maxlength="40" required>
+          </div>
+          <div class="form-group">
+            <label for="setupSquadTagline">Tagline <span class="optional">(optional)</span></label>
+            <input type="text" id="setupSquadTagline" placeholder="e.g. We hit sixes only 🔥" maxlength="60">
+          </div>
+          <button type="submit" class="btn btn-lime btn-full">Create Squad</button>
+        </form>
+      </div>
+
+      <!-- Join Squad Pane -->
+      <div class="setup-pane" id="paneJoin" style="display: none;">
+        <form id="setupJoinForm">
+          <div class="form-group">
+            <label for="setupJoinCode">Squad Invite Code</label>
+            <input type="text" id="setupJoinCode" placeholder="e.g. BMB-XKRF42" maxlength="10" required style="text-transform: uppercase; letter-spacing: 2px; font-family: 'Space Mono', monospace; text-align: center; font-size: 16px;">
+          </div>
+          <div class="join-preview" id="setupJoinPreview" style="display: none;">
+            <div class="preview-name" id="setupPreviewName"></div>
+            <div class="preview-members" id="setupPreviewMembers"></div>
+          </div>
+          <button type="submit" class="btn btn-lime btn-full">Join Squad</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-main-col" id="chatMainCol" style="display: none;">
+
+  <!-- Top Bar -->
+  <div class="chat-topbar">
+    <a href="index.html" class="back-btn" aria-label="Go back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </a>
+    <div class="squad-info-bar">
+      <div class="avatar-stack-sm">
+        <div class="av"></div><div class="av"></div><div class="av"></div><div class="av"></div><div class="av"></div><div class="av"></div>
+      </div>
+      <div>
+        <div class="squad-name">Vanasthalipuram Strikers</div>
+        <div class="squad-meta">6 members · 12 games played</div>
+      </div>
+    </div>
+    <div class="user-global-stats" id="navGlobalStats" style="display: flex; align-items: center; gap: 12px; margin-left: auto; margin-right: 16px;">
+      <div class="nav-stat-badge" title="Total Matches" style="background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 20px; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+        🏟️ <span id="navMatchCount">0</span>
+      </div>
+      <div class="nav-stat-badge" title="Total Referrals" style="background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 20px; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px; color: var(--lime);">
+        🤝 <span id="navReferCount">0</span>
+      </div>
+      <a href="profile.html" id="chatProfileBtn" style="border-radius:50%; padding:10px 12px; color: var(--text); border: 1px solid var(--card-line); display:flex; align-items:center; justify-content:center; text-decoration:none;" title="My Profile">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </a>
+    </div>
+    <button class="topbar-action" id="toggleInfoPanel" aria-label="Squad info">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    </button>
+  </div>
+
+  <!-- Chat Type Tab Bar -->
+  <div class="chat-type-tabs" id="chatTypeTabs">
+    <button class="chat-type-tab active" id="tabGroup" onclick="switchChatType('group')">
+      🏏 Squad Chat
+    </button>
+    <button class="chat-type-tab" id="tabVenue" onclick="switchChatType('venue')">
+      📍 Venue
+    </button>
+    <button class="chat-type-tab" id="tabSupport" onclick="switchChatType('support')">
+      🛟 Support
+    </button>
+  </div>
+
+
+
+  <!-- Chat Messages Area -->
+  <div class="chat-messages" id="chatMessages">
+
+    <!-- Messages will be injected by JS -->
+
+  </div>
+
+  <!-- Input Bar -->
+  <div class="chat-input-bar" id="groupInputBar">
+    <div class="input-actions">
+      <button class="input-action-btn" id="pollBtn" aria-label="Create poll" title="Create poll">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>
+      </button>
+      <button class="input-action-btn" id="bookBtn" aria-label="Squad booking" title="Book for squad">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </button>
+    </div>
+    <div class="input-wrapper">
+      <input type="text" id="msgInput" placeholder="Type a message..." autocomplete="off">
+    </div>
+    <button class="send-btn" id="sendBtn" aria-label="Send message">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+
+  <!-- ===== VENUE PANEL ===== -->
+  <div class="alt-panel" id="venuePanel" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
+    <div class="alt-panel-header" style="border-bottom-color: rgba(61,232,255,0.2); background: rgba(61,232,255,0.04);">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--cyan),#1bbde0);color:#0B1210;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">SBA</div>
+        <div>
+          <div id="venueTabName" style="font-weight:800;font-size:15px;">No active venue booking</div>
+          <div id="venueTabSub" style="font-size:11.5px;color:var(--text-dim);"></div>
+        </div>
+      </div>
+      <a id="venueWhatsAppBtn" href="#" target="_blank" class="btn" style="background:rgba(37,211,102,0.15);border:1px solid rgba(37,211,102,0.3);color:#25D366;font-size:13px;padding:8px 16px;display:flex;align-items:center;gap:6px;border-radius:100px;text-decoration:none;font-weight:700;flex-shrink:0;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="alt-panel-body" style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:12px;">
+      <div class="venue-info-card">
+        <div class="venue-info-row"><span class="venue-info-label">📍 Address</span><span id="venueTabAddress">N/A</span></div>
+        <div class="venue-info-row"><span class="venue-info-label">📞 Contact</span><span id="venueTabContact">N/A</span></div>
+        <div class="venue-info-row"><span class="venue-info-label">🕐 Hours</span><span id="venueTabHours">N/A</span></div>
+        <div class="venue-info-row"><span class="venue-info-label">⚡ Floodlights</span><span style="color:var(--lime);">Available</span></div>
+        <div class="venue-info-row"><span class="venue-info-label">🅿️ Parking</span><span style="color:var(--lime);">Free · 50 spots</span></div>
+      </div>
+      <div class="alt-panel-tip">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        In-app venue messaging coming soon. For now, use WhatsApp to reach the manager directly.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SUPPORT PANEL ===== -->
+  <div class="alt-panel" id="supportPanel" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
+    <div class="alt-panel-header" style="border-bottom-color: rgba(255,59,48,0.2); background: rgba(255,59,48,0.04);">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#FF3B30,#cc2a1f);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">AG</div>
+        <div>
+          <div style="font-weight:800;font-size:15px;">AntiGravity Support</div>
+          <div style="font-size:11.5px;color:var(--text-dim);">🟢 Online · Avg response 3 min</div>
+        </div>
+      </div>
+      <span style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--red);background:rgba(255,59,48,0.1);border:1px solid rgba(255,59,48,0.3);padding:4px 10px;border-radius:100px;">LIVE SUPPORT</span>
+    </div>
+    <div class="alt-panel-body" style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:14px;">
+      <div class="support-quick-actions">
+        <div class="support-label">Quick actions</div>
+        <div class="support-action-grid">
+          <button class="support-action-btn" onclick="instantSupportRedirect('I need to cancel my booking')">❌ Cancel booking</button>
+          <button class="support-action-btn" onclick="instantSupportRedirect('I need a refund for booking')">💰 Request refund</button>
+          <button class="support-action-btn" onclick="instantSupportRedirect('The venue was closed when we arrived')">🏟️ Venue issue</button>
+          <button class="support-action-btn" onclick="instantSupportRedirect('I want to report a user')">🚫 Report user</button>
+          <button class="support-action-btn" onclick="instantSupportRedirect('I have a payment issue')">💳 Payment issue</button>
+          <button class="support-action-btn" onclick="instantSupportRedirect('Other issue')">💬 Other</button>
+        </div>
+      </div>
+      <div class="alt-panel-tip">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        Clicking an issue above will instantly redirect you to our Live Support via WhatsApp.
+      </div>
+    </div>
+  </div>
+
+  </div><!-- end chat-main-col -->
+
+
+  <!-- Squad Info Drawer -->
+  <div class="info-drawer" id="infoDrawer" style="display: none;">
+    <div class="drawer-header">
+      <h3>Squad Info</h3>
+      <button class="drawer-close" id="closeDrawer" aria-label="Close">&times;</button>
+    </div>
+    <div class="drawer-section">
+      <div class="squad-badge-big">VS</div>
+      <h4>Vanasthalipuram Strikers</h4>
+      <span class="drawer-sub">Created 3 months ago · 12 matches</span>
+    </div>
+    <div class="drawer-section">
+      <span class="drawer-label">MEMBERS</span>
+      <div class="member-list">
+        <div class="member-row"><div class="av">AK</div><div><span class="m-name">Arjun K.</span><span class="m-role" style="color:var(--lime);">Admin</span></div></div>
+        <div class="member-row"><div class="av">RS</div><div><span class="m-name">Rahul S.</span><span class="m-role">Member</span></div></div>
+        <div class="member-row"><div class="av">PM</div><div><span class="m-name">Prateek M.</span><span class="m-role">Member</span></div></div>
+        <div class="member-row"><div class="av">VD</div><div><span class="m-name">Vishal D.</span><span class="m-role">Member</span></div></div>
+        <div class="member-row"><div class="av">KR</div><div><span class="m-name">Karthik R.</span><span class="m-role">Member</span></div></div>
+        <div class="member-row"><div class="av">ST</div><div><span class="m-name">Sai T.</span><span class="m-role">Member</span></div></div>
+      </div>
+    </div>
+    
+    <div class="drawer-section">
+      <span class="drawer-label">RECOMMENDED VENUES</span>
+      <div id="recommendedVenuesContainer">
+        <div style="color:var(--text-dim); font-size:13px; text-align:center; padding:10px;">Loading venues...</div>
+      </div>
+    </div>
+    <div class="drawer-section">
+      <span class="drawer-label">STATS</span>
+      <div class="stat-grid">
+        <div class="stat-cell"><span class="stat-num" id="statGames">0</span><span class="stat-lbl">Games</span></div>
+        <div class="stat-cell"><span class="stat-num" id="statWins">0</span><span class="stat-lbl">Wins</span></div>
+        <div class="stat-cell"><span class="stat-num" id="statStreak">0</span><span class="stat-lbl">Streak</span></div>
+      </div>
+    </div>
+
+    <!-- Invite Code -->
+    <div class="drawer-section">
+      <span class="drawer-label">INVITE CODE</span>
+      <div class="invite-code-box">
+        <span class="invite-code-text" id="drawerInviteCode">BMB-DEMO</span>
+        <button class="invite-copy-btn" id="drawerCopyCodeBtn" title="Copy invite link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy link
+        </button>
+      </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="drawer-section drawer-danger-zone">
+      <span class="drawer-label" style="color: rgba(255,59,48,0.7);">DANGER ZONE</span>
+      <button class="btn btn-outline drawer-btn leave-squad-btn" id="leaveSquadBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Leave Squad
+      </button>
+      <p class="leave-warning">You can rejoin anytime with the invite code.</p>
+    </div>
+
+  </div>
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+
+
+  <!-- Create Squad Modal -->
+  <div class="modal-overlay" id="createModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Create a Squad</h3>
+        <button class="modal-close" id="closeCreateModal">&times;</button>
+      </div>
+      <form id="createSquadForm">
+        <div class="form-group">
+          <label for="squadName">Squad Name</label>
+          <input type="text" id="squadName" placeholder="e.g. Vanasthalipuram Strikers" maxlength="40" required>
+        </div>
+        <div class="form-group">
+          <label for="squadTagline">Tagline <span class="optional">(optional)</span></label>
+          <input type="text" id="squadTagline" placeholder="e.g. We hit sixes only 🔥" maxlength="60">
+        </div>
+        <button type="submit" class="btn btn-lime btn-full">Create Squad</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Join Squad Modal -->
+  <div class="modal-overlay" id="joinModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Join a Squad</h3>
+        <button class="modal-close" id="closeJoinModal">&times;</button>
+      </div>
+      <form id="joinSquadForm">
+        <div class="form-group">
+          <label for="joinCode">Squad Code</label>
+          <input type="text" id="joinCode" placeholder="e.g. BMB-XKRF42" maxlength="10" required style="text-transform: uppercase; letter-spacing: 2px; font-family: 'Space Mono', monospace; font-size: 16px; text-align: center;">
+        </div>
+        <div class="join-preview" id="joinPreview" style="display:none;">
+          <div class="preview-name" id="previewName"></div>
+          <div class="preview-members" id="previewMembers"></div>
+        </div>
+        <button type="submit" class="btn btn-lime btn-full">Join Squad</button>
+      </form>
+    </div>
+  </div>
+
+
+
+  <!-- Custom Poll Modal -->
+  <div class="modal-overlay" id="pollModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Create a Poll</h3>
+        <button class="modal-close" id="closePollModal">&times;</button>
+      </div>
+      <form id="createPollForm">
+        <div class="form-group">
+          <label for="pollQuestion">Question</label>
+          <input type="text" id="pollQuestion" placeholder="e.g. Today's match time?" required>
+        </div>
+        <div class="form-group">
+          <label for="pollOpt1">Option 1</label>
+          <input type="text" id="pollOpt1" value="7:00 PM" placeholder="Option 1" required>
+        </div>
+        <div class="form-group">
+          <label for="pollOpt2">Option 2</label>
+          <input type="text" id="pollOpt2" value="8:00 PM" placeholder="Option 2" required>
+        </div>
+        <button type="submit" class="btn btn-lime btn-full">Share Poll</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Custom Booking Modal -->
+  <div class="modal-overlay" id="bookModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Share a Squad Booking</h3>
+        <button class="modal-close" id="closeBookModal">&times;</button>
+      </div>
+      <form id="createBookingForm">
+        <div class="form-group">
+          <label for="bookVenue">Select Venue</label>
+          <select id="bookVenue" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--card-line); background: var(--bg); color: var(--text); outline: none;">
+            <option value="" disabled selected>Loading venues...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="bookDate">Date</label>
+          <input type="date" id="bookDate" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--card-line); background: var(--bg); color: var(--text); outline: none; font-family: 'Manrope', sans-serif;">
+        </div>
+        <div class="form-group">
+          <label>Available Time Slots</label>
+          <div id="bookSlotsPlaceholder" style="color: var(--text-dim); font-size: 13px; margin-bottom: 8px;">Please select a venue and date to view slots.</div>
+          <div id="bookSlotsContainer" style="display: none; flex-direction: column; gap: 8px; max-height: 160px; overflow-y: auto; padding-right: 8px; border: 1px solid var(--card-line); border-radius: 8px; padding: 8px; background: var(--bg);">
+            <!-- Slots injected here -->
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bookTotal">Total Cost (₹)</label>
+            <input type="text" id="bookTotal" value="0" readonly required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--card-line); background: var(--card); color: var(--text-dim); outline: none;">
+          </div>
+          <div class="form-group">
+            <label for="bookSplit">Split Cost / user (₹)</label>
+            <input type="text" id="bookSplit" value="0" readonly required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--card-line); background: var(--card); color: var(--text-dim); outline: none;">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-lime btn-full">Share Booking</button>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="firebase-config.js?v=4"></script>
+    <script src="squad-chat.js?v=3"></script>
+
+<script>
+  // ===== CHAT TYPE SWITCHER =====
+  function switchChatType(type) {
+    const groupParts = ['chatMessages', 'groupInputBar'];
+    const venueParts = ['venuePanel'];
+    const supportParts = ['supportPanel'];
+    const tabs = { group: 'tabGroup', venue: 'tabVenue', support: 'tabSupport' };
+    const bookingBar = document.getElementById('bookingContextBar');
+
+    // Reset all tabs
+    Object.values(tabs).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('active');
+    });
+    // Activate selected tab
+    const active = document.getElementById(tabs[type]);
+    if (active) active.classList.add('active');
+
+    // Hide all panels
+    [...groupParts, ...venueParts, ...supportParts].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+
+    // Show selected
+    if (type === 'group') {
+      document.getElementById('chatMessages').style.display = 'flex';
+      document.getElementById('groupInputBar').style.display = 'flex';
+      if (bookingBar) bookingBar.style.display = 'flex';
+    } else if (type === 'venue') {
+      const vp = document.getElementById('venuePanel');
+      if (vp) { vp.style.display = 'flex'; }
+      // Set WhatsApp link
+      const waBtn = document.getElementById('venueWhatsAppBtn');
+      if (waBtn) {
+        const msg = encodeURIComponent('Hi, I have a booking at your venue via AntiGravity / Book My Box. Can you help?');
+        waBtn.href = 'https://wa.me/919876543210?text=' + msg;
+      }
+      if (bookingBar) bookingBar.style.display = 'none';
+    } else if (type === 'support') {
+      const sp = document.getElementById('supportPanel');
+      if (sp) { sp.style.display = 'flex'; }
+      if (bookingBar) bookingBar.style.display = 'none';
+    }
+  }
+
+  // Instant Support Redirect (opens WhatsApp)
+  window.instantSupportRedirect = function(msg) {
+    const squadName = document.querySelector('.squad-name') ? document.querySelector('.squad-name').textContent : 'My Squad';
+    const fullMsg = encodeURIComponent(`[AntiGravity Support] Squad: ${squadName}\nIssue: ${msg}`);
+    window.open('https://wa.me/919000000000?text=' + fullMsg, '_blank');
+  }
+
+  // Booking context bar removed per requirements.
+</script>
+
+</body>
+</html>
