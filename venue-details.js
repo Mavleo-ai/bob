@@ -256,7 +256,7 @@ function updateBookingSummaryUI() {
   }
 }
 
-async function createBooking(paymentMethod, paymentId = null) {
+async function createBooking(paymentMethod) {
   if (selectedSlots.length === 0) return;
 
   if (typeof auth !== 'undefined' && !auth.currentUser) {
@@ -295,7 +295,6 @@ async function createBooking(paymentMethod, paymentId = null) {
         bookedByEmail: auth.currentUser.email || '',
         bookedByPhone: userPhone,
         paymentMethod: paymentMethod,
-        paymentId: paymentId,
         discountApplied: discount / selectedSlots.length,
         bookedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
@@ -322,57 +321,3 @@ document.getElementById('payAtVenueBtn').addEventListener('click', () => {
   createBooking('venue');
 });
 
-document.getElementById('payOnlineBtn').addEventListener('click', async () => {
-  if (selectedSlots.length === 0) return;
-
-  if (typeof auth !== 'undefined' && !auth.currentUser) {
-    window.location.href = 'signin.html';
-    return;
-  }
-  
-  const subtotal = (currentVenue.price || 500) * selectedSlots.length;
-  const discount = Math.min(userWalletBalance, subtotal);
-  const finalPrice = subtotal - discount;
-
-  if (finalPrice <= 0) {
-    // Entirely covered by wallet
-    createBooking('wallet');
-    return;
-  }
-
-  // Ensure contact is fetched if available
-  let userPhone = '';
-  try {
-    const userDoc = await db.collection('users').doc(auth.currentUser.uid).get();
-    if (userDoc.exists) {
-      userPhone = userDoc.data().phone || '';
-    }
-  } catch (e) {
-    console.error("Error fetching user phone", e);
-  }
-
-  const options = {
-    "key": "ScU5iIqDR1rCpLbBPH1mtAHt", 
-    "amount": finalPrice * 100,
-    "currency": "INR",
-    "name": "Book My Box",
-    "description": `Booking at ${currentVenue.name || 'Venue'}`,
-    "handler": function (response) {
-      createBooking('online', response.razorpay_payment_id);
-    },
-    "prefill": {
-      "name": auth.currentUser.displayName || "",
-      "email": auth.currentUser.email || "",
-      "contact": userPhone
-    },
-    "theme": {
-      "color": "#c6ff3d"
-    }
-  };
-  
-  const rzp = new window.Razorpay(options);
-  rzp.on('payment.failed', function (response){
-    alert("Payment failed: " + response.error.description);
-  });
-  rzp.open();
-});
