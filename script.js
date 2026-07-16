@@ -252,7 +252,7 @@ if (typeof auth !== 'undefined' && auth) {
               const isSubscribed = data.hasSubscription === true;
               
               if (homeRefLinkInput) {
-                homeRefLinkInput.value = isSubscribed ? `https://www.bookmybox.site/?ref=${userRefCode}` : 'Requires Membership';
+                homeRefLinkInput.value = isSubscribed ? `https://www.bookmybox.site/signup.html?ref=${userRefCode}` : 'Requires Membership';
                 homeRefLinkInput.style.color = isSubscribed ? 'var(--text)' : 'var(--text-dim)';
               }
               
@@ -262,7 +262,7 @@ if (typeof auth !== 'undefined' && auth) {
                   alert("You need an active Book My Box membership to get a referral code and earn rewards.");
                   return;
                 }
-                const refUrl = `https://www.bookmybox.site/?ref=${userRefCode}`;
+                const refUrl = `https://www.bookmybox.site/signup.html?ref=${userRefCode}`;
                 navigator.clipboard.writeText(refUrl).then(() => {
                   const ogHTML = homeCopyRefBtn.innerHTML;
                   homeCopyRefBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';
@@ -308,7 +308,7 @@ if (typeof auth !== 'undefined' && auth) {
             const userRefCode = mockName.substring(0,8).toUpperCase() + '123';
             const isSubscribed = localStorage.getItem('hasSubscription') === 'true';
             if (homeRefLinkInput) {
-              homeRefLinkInput.value = isSubscribed ? `https://www.bookmybox.site/?ref=${userRefCode}` : 'Requires Membership';
+              homeRefLinkInput.value = isSubscribed ? `https://www.bookmybox.site/signup.html?ref=${userRefCode}` : 'Requires Membership';
               homeRefLinkInput.style.color = isSubscribed ? 'var(--text)' : 'var(--text-dim)';
             }
             homeCopyRefBtn.disabled = false;
@@ -317,7 +317,7 @@ if (typeof auth !== 'undefined' && auth) {
                 alert("You need an active Book My Box membership to get a referral code and earn rewards.");
                 return;
               }
-              const refUrl = `https://www.bookmybox.site/?ref=${userRefCode}`;
+              const refUrl = `https://www.bookmybox.site/signup.html?ref=${userRefCode}`;
               navigator.clipboard.writeText(refUrl).then(() => {
                 const ogHTML = homeCopyRefBtn.innerHTML;
                 homeCopyRefBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';

@@ -202,7 +202,7 @@ function initReferralSystem(user, userRefCode) {
   const isSubscribed = localStorage.getItem('hasSubscription') === 'true';
 
   if (refLinkInput) {
-    refLinkInput.value = isSubscribed ? `https://www.bookmybox.site/?ref=${userRefCode}` : 'Requires Membership';
+    refLinkInput.value = isSubscribed ? `https://www.bookmybox.site/signup.html?ref=${userRefCode}` : 'Requires Membership';
   }
 
   if (copyRefBtn) {
@@ -211,7 +211,7 @@ function initReferralSystem(user, userRefCode) {
         alert("You need an active Book My Box membership to get a referral code and earn rewards.");
         return;
       }
-      const copyUrl = `https://www.bookmybox.site/?ref=${userRefCode}`;
+      const copyUrl = `https://www.bookmybox.site/signup.html?ref=${userRefCode}`;
       navigator.clipboard.writeText(copyUrl).then(() => {
         const ogText = copyRefBtn.textContent;
         copyRefBtn.textContent = 'Copied!';
