@@ -248,9 +248,8 @@ if (typeof auth !== 'undefined' && auth) {
             if (homeRefLinkInput && homeCopyRefBtn) {
               const handle = '@' + (data.name || 'Player').toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 12) + user.uid.substring(0, 4);
               const userRefCode = data.referral_code || handle.substring(1).toUpperCase();
-              const refUrl = `https://bookmybox.com/ref/${userRefCode}`;
-              
-              homeRefLinkInput.value = refUrl;
+              const refUrl = `https://www.bookmybox.site/?ref=${userRefCode}`;
+              if (homeRefLinkInput) homeRefLinkInput.value = refUrl;
               homeRefLinkInput.style.color = 'var(--text)';
               homeCopyRefBtn.disabled = false;
               
@@ -298,7 +297,7 @@ if (typeof auth !== 'undefined' && auth) {
           if (homeRefLinkInput && homeCopyRefBtn) {
             const mockName = localStorage.getItem('mockName') || 'DemoUser';
             const userRefCode = mockName.substring(0,8).toUpperCase() + '123';
-            const refUrl = `https://bookmybox.com/ref/${userRefCode}`;
+            const refUrl = `https://www.bookmybox.site/?ref=${userRefCode}`;
             homeRefLinkInput.value = refUrl;
             homeRefLinkInput.style.color = 'var(--text)';
             homeCopyRefBtn.disabled = false;

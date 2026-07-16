@@ -200,12 +200,12 @@ function fallbackToAuthProfile(user) {
 
 function initReferralSystem(user, userRefCode) {
   if (refLinkInput) {
-    refLinkInput.value = `https://bookmybox.com/ref/${userRefCode}`;
+    refLinkInput.value = `https://www.bookmybox.site/?ref=${userRefCode}`;
   }
 
   if (copyRefBtn) {
     copyRefBtn.onclick = function() {
-      const copyUrl = window.location.origin + '/signup.html?ref=' + userRefCode;
+      const copyUrl = `https://www.bookmybox.site/?ref=${userRefCode}`;
       navigator.clipboard.writeText(copyUrl).then(() => {
         const ogText = copyRefBtn.textContent;
         copyRefBtn.textContent = 'Copied!';
