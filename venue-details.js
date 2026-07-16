@@ -245,11 +245,11 @@ function updateBookingSummaryUI() {
       discountRowEl.style.display = 'flex';
       discountPriceEl.textContent = `-₹${discount}`;
       finalPriceEl.textContent = `₹${subtotal - discount}`;
-      if (hintEl) hintEl.textContent = `Pay ₹${subtotal - discount} securely with Razorpay`;
+      if (hintEl) hintEl.textContent = `No payment now - pay ₹${subtotal - discount} at the venue`;
     } else {
       discountRowEl.style.display = 'none';
       finalPriceEl.textContent = `₹${subtotal}`;
-      if (hintEl) hintEl.textContent = `Pay ₹${subtotal} securely with Razorpay`;
+      if (hintEl) hintEl.textContent = `No payment now - pay ₹${subtotal} at the venue`;
     }
   } else {
     document.getElementById('bookingActionContainer').style.display = 'none';
@@ -318,26 +318,5 @@ async function createBooking(paymentMethod) {
 }
 
 document.getElementById('payAtVenueBtn').addEventListener('click', () => {
-  const subtotal = (currentVenue.price || 500) * selectedSlots.length;
-  const discount = Math.min(userWalletBalance, subtotal);
-  const amountToPay = subtotal - discount;
-
-  if (amountToPay > 0 && typeof window.processRazorpayPayment === 'function') {
-    const ogText = document.getElementById('payAtVenueBtn').textContent;
-    document.getElementById('payAtVenueBtn').textContent = 'Processing...';
-    document.getElementById('payAtVenueBtn').disabled = true;
-
-    window.processRazorpayPayment(amountToPay, `Booking at ${currentVenue.name}`, (paymentId) => {
-      createBooking('razorpay');
-    });
-
-    // reset button on cancel
-    setTimeout(() => {
-      document.getElementById('payAtVenueBtn').textContent = ogText;
-      document.getElementById('payAtVenueBtn').disabled = false;
-    }, 3000);
-  } else {
-    // Free booking (100% discount)
-    createBooking('wallet_full');
-  }
+  createBooking('venue');
 });

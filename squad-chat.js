@@ -1583,14 +1583,7 @@ window.finalizeBooking = function(msgId) {
         });
       };
 
-      if (typeof window.processRazorpayPayment === 'function') {
-        const amount = parseInt(bookingData.totalPrice, 10);
-        window.processRazorpayPayment(amount, `Squad Booking at ${bookingData.venue}`, (paymentId) => {
-          proceedWithBooking();
-        });
-      } else {
-        proceedWithBooking();
-      }
+      proceedWithBooking();
     });
   } else {
     // Local storage
