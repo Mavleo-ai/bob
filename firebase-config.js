@@ -163,7 +163,7 @@ window.processRazorpayPayment = function(amountInRupees, description, onSuccess)
   const user = firebase.auth().currentUser;
   
   const options = {
-    "key": "rzp_test_YOUR_KEY_HERE", // Replace with actual Razorpay Key ID
+    "key": "ScU5iIqDR1rCpLbBPH1mtAHt", // Replace with actual Razorpay Key ID
     "amount": Math.round(amountInRupees * 100), // Amount in paise
     "currency": "INR",
     "name": "Book My Box",
