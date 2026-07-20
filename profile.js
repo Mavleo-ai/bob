@@ -368,18 +368,29 @@ window.redeemReward = function(rewardId) {
 window.selectUpgradePlan = function(planName, totalVisits, rateText) {
   if (!currentUser) return;
   
-  db.collection('users').doc(currentUser.uid).set({
-    plan_name: planName,
-    visits_total: totalVisits,
-    rate_locked: rateText,
-    visits_used: 0
-  }, { merge: true }).then(() => {
-    if (upgradeModal) upgradeModal.style.display = 'none';
-    showToast(`⚡ Plan upgraded to ${planName} successfully!`, 'success');
-  }).catch(err => {
-    console.error("Upgrade failed:", err);
-    showToast("Failed to upgrade plan.", "error");
-  });
+  if (typeof window.processRazorpayPayment === 'function') {
+    window.processRazorpayPayment(200, "Upgrade to " + planName, function(paymentId) {
+      db.collection('users').doc(currentUser.uid).set({
+        plan_name: planName,
+        visits_total: totalVisits,
+        rate_locked: rateText,
+        visits_used: 0,
+        hasSubscription: true,
+        subscriptionStatus: 'active'
+      }, { merge: true }).then(() => {
+        if (upgradeModal) upgradeModal.style.display = 'none';
+        showToast(`⚡ Plan upgraded to ${planName} successfully!`, 'success');
+      }).catch(err => {
+        console.error("Upgrade failed:", err);
+        showToast("Failed to upgrade plan.", "error");
+      });
+    }, function() {
+      // onDismiss handler
+      if (upgradeModal) upgradeModal.style.display = 'none';
+    });
+  } else {
+    showToast("Payment system is not available.", "error");
+  }
 };
 
 // ── Auth State ─────────────────────────────────────────────────────────────────
@@ -394,7 +405,7 @@ auth.onAuthStateChanged(function(user) {
       profileEmail.style.opacity = '1';
     }
 
-    if (memberBadge) memberBadge.style.display = 'block';
+    // PRO Member badge logic is now moved to the Firestore onSnapshot callback
 
     // Set a safety load boundary. If Firestore doc fails to load in 2.5 seconds, run fallback hydration.
     let userDocLoaded = false;
@@ -452,7 +463,44 @@ auth.onAuthStateChanged(function(user) {
       if (profileMatches) profileMatches.textContent = data.matches || 0;
 
       // Handle Membership Pause State UI defensively
+      if (data.hasSubscription && data.subscriptionStatus !== 'paused') {
+        if (memberBadge) memberBadge.style.display = 'block';
+      } else {
+        if (memberBadge) memberBadge.style.display = 'none';
+      }
+      
+      if (data.hasSubscription) {
+        const pType = data.subscriptionType || 'promax';
+        const planEl = document.getElementById('profilePlanType');
+        if (planEl) {
+          if (pType === 'pro') planEl.innerHTML = 'Pro Membership &bull; <span class="rate">₹200/mo</span>';
+          else planEl.innerHTML = 'Pro Max Membership &bull; <span class="rate">₹400/mo</span>';
+        }
+        
+        const homeBoxInfo = document.getElementById('profileHomeBoxInfo');
+        const homeBoxText = document.getElementById('homeBoxNameText');
+        if (pType === 'pro' && data.homeBoxId && homeBoxInfo && homeBoxText) {
+          homeBoxInfo.style.display = 'block';
+          db.collection('venues').doc(data.homeBoxId).get().then(snap => {
+            if (snap.exists) homeBoxText.textContent = snap.data().name;
+            else homeBoxText.textContent = 'Unknown Box';
+          });
+        } else if (homeBoxInfo) {
+          homeBoxInfo.style.display = 'none';
+        }
+      }
+
       if (!data.hasSubscription) {
+        const membershipInfo = document.querySelector('.membership-info');
+        const visitTracker = document.querySelector('.visit-tracker-container');
+        if (membershipInfo) membershipInfo.style.display = 'none';
+        if (visitTracker) visitTracker.style.display = 'none';
+        
+        const refLinkBox = document.querySelector('.ref-link-box');
+        const refProgressContainer = document.querySelector('.ref-progress-container');
+        if (refLinkBox) refLinkBox.style.display = 'none';
+        if (refProgressContainer) refProgressContainer.innerHTML = '<div style="background: rgba(255,255,255,0.05); border: 1px dashed var(--card-line); padding: 16px; border-radius: 8px; color: var(--text-dim); font-size: 13px; text-align: center;">🔒 PRO Members Only. Upgrade your plan to start earning rewards!</div>';
+
         if (memberStatusBadge) {
           memberStatusBadge.textContent = 'No Plan';
           memberStatusBadge.className = 'status-badge';
@@ -461,6 +509,11 @@ auth.onAuthStateChanged(function(user) {
         }
         if (pauseMembershipBtn) pauseMembershipBtn.style.display = 'none';
       } else if (data.subscriptionStatus === 'paused') {
+        const membershipInfo = document.querySelector('.membership-info');
+        const visitTracker = document.querySelector('.visit-tracker-container');
+        if (membershipInfo) membershipInfo.style.display = 'block';
+        if (visitTracker) visitTracker.style.display = 'block';
+        
         if (memberStatusBadge) {
           memberStatusBadge.textContent = 'Paused';
           memberStatusBadge.className = 'status-badge';
@@ -472,6 +525,11 @@ auth.onAuthStateChanged(function(user) {
           pauseMembershipBtn.style.display = 'block';
         }
       } else {
+        const membershipInfo = document.querySelector('.membership-info');
+        const visitTracker = document.querySelector('.visit-tracker-container');
+        if (membershipInfo) membershipInfo.style.display = 'block';
+        if (visitTracker) visitTracker.style.display = 'block';
+
         if (memberStatusBadge) {
           memberStatusBadge.textContent = 'Active';
           memberStatusBadge.className = 'status-badge active';
@@ -494,7 +552,21 @@ auth.onAuthStateChanged(function(user) {
         planTypeEl.innerHTML = `${data.plan_name || 'Monthly PRO'} • <span class="rate">${data.rate_locked || '₹450/hr locked rate'}</span>`;
       }
 
-      if (data.phone && settingPhone) settingPhone.value = data.phone;
+      if (data.phone && settingPhone) {
+        settingPhone.dataset.rawPhone = data.phone;
+        const p = data.phone;
+        settingPhone.value = p.length > 6 ? p.substring(0, 4) + '*'.repeat(p.length - 6) + p.substring(p.length - 2) : p;
+        
+        settingPhone.addEventListener('focus', () => { 
+          if (settingPhone.value.includes('*')) settingPhone.value = settingPhone.dataset.rawPhone;
+        });
+        settingPhone.addEventListener('blur', () => {
+          const current = settingPhone.value.trim();
+          if (current === settingPhone.dataset.rawPhone || current === '') {
+             settingPhone.value = p.length > 6 ? p.substring(0, 4) + '*'.repeat(p.length - 6) + p.substring(p.length - 2) : p;
+          }
+        });
+      }
       
       const profileWallet = getEl('profileWallet');
       if (profileWallet) {
@@ -558,8 +630,6 @@ auth.onAuthStateChanged(function(user) {
     // ── Booking History ──────────────────────────────────────────────────────
     db.collection('bookings')
       .where('user_id', '==', user.uid)
-      .orderBy('slot_start', 'desc')
-      .limit(3)
       .get()
       .then(function(snap) {
         if (!snap.empty) {
@@ -570,15 +640,18 @@ auth.onAuthStateChanged(function(user) {
               name: data.venue_name || 'Box Venue',
               meta: date.toLocaleString('en-IN', { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }),
               status: data.status || 'Completed',
-              cls: 'status-' + (data.status || 'completed').toLowerCase()
+              cls: 'status-' + (data.status || 'completed').toLowerCase(),
+              dateObj: date
             };
           });
-          renderBookingHistory(bookings);
+          bookings.sort((a, b) => b.dateObj - a.dateObj);
+          renderBookingHistory(bookings.slice(0, 3));
         } else {
           renderBookingHistory([]);
         }
       })
-      .catch(function() {
+      .catch(function(err) {
+        console.warn("Bookings fetch failed:", err);
         renderBookingHistory([]);
       });
 
@@ -599,7 +672,19 @@ auth.onAuthStateChanged(function(user) {
       if (avatarInitials) avatarInitials.textContent = mockName.substring(0, 2).toUpperCase();
       
       if (settingName) settingName.value = mockName;
-      if (settingPhone) settingPhone.value = mockPhone;
+      if (settingPhone) {
+        settingPhone.dataset.rawPhone = mockPhone;
+        settingPhone.value = mockPhone.length > 6 ? mockPhone.substring(0, 4) + '*'.repeat(mockPhone.length - 6) + mockPhone.substring(mockPhone.length - 2) : mockPhone;
+        settingPhone.addEventListener('focus', () => { 
+          if (settingPhone.value.includes('*')) settingPhone.value = settingPhone.dataset.rawPhone;
+        });
+        settingPhone.addEventListener('blur', () => {
+          const current = settingPhone.value.trim();
+          if (current === settingPhone.dataset.rawPhone || current === '') {
+             settingPhone.value = mockPhone.length > 6 ? mockPhone.substring(0, 4) + '*'.repeat(mockPhone.length - 6) + mockPhone.substring(mockPhone.length - 2) : mockPhone;
+          }
+        });
+      }
       if (settingInsta) {
         settingInsta.value = mockInsta;
         if (newInsta && profileInstaText && profileInsta) {
@@ -641,7 +726,10 @@ if (saveSettingsBtn) {
   saveSettingsBtn.addEventListener('click', () => {
     const newName  = settingName ? settingName.value.trim() : '';
     const newInsta = settingInsta ? settingInsta.value.trim() : '';
-    const newPhone = settingPhone ? settingPhone.value.trim() : '';
+    let newPhone = settingPhone ? settingPhone.value.trim() : '';
+    if (newPhone.includes('*') && settingPhone.dataset.rawPhone) {
+      newPhone = settingPhone.dataset.rawPhone;
+    }
     if (!newName) { showToast('Name cannot be empty', 'error'); return; }
 
     const ogText = saveSettingsBtn.textContent;
@@ -875,3 +963,9 @@ if (avatarUpload) {
     reader.readAsDataURL(file);
   });
 }
+
+// ── Modal Background Click Listeners ────────────────────────────────────────────────
+if (upgradeModal) upgradeModal.addEventListener('click', (e) => { if (e.target === upgradeModal) upgradeModal.style.display = 'none'; });
+if (pauseModal) pauseModal.addEventListener('click', (e) => { if (e.target === pauseModal) pauseModal.style.display = 'none'; });
+if (alertModal) alertModal.addEventListener('click', (e) => { if (e.target === alertModal) alertModal.style.display = 'none'; });
+

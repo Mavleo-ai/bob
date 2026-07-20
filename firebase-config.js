@@ -99,64 +99,13 @@ if (typeof firebase !== 'undefined') {
   }
 })();
 
-// ===== GLOBAL FOUNDERS WIDGET =====
-(function() {
-  function addFoundersWidget() {
-    if (document.getElementById('bmb-founders-widget')) return;
-    
-    // Only show on home page
-    const path = window.location.pathname.toLowerCase();
-    const isHome = path.endsWith('index.html') || path === '/' || path.endsWith('/bmb/');
-    if (!isHome) return;
 
-    const widget = document.createElement('div');
-    widget.id = 'bmb-founders-widget';
-    widget.innerHTML = `
-      <div style="
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: rgba(10, 10, 10, 0.85);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid var(--lime, #c6ff3d);
-        border-radius: 12px;
-        padding: 12px 18px;
-        color: #fff;
-        font-size: 11px;
-        font-family: 'Manrope', sans-serif;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-        z-index: 999999;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        pointer-events: none;
-        letter-spacing: 0.5px;
-      ">
-        <div style="display: flex; justify-content: space-between; gap: 16px;">
-          <span style="color: var(--lime, #c6ff3d); font-weight: 800; font-size: 10px;">FOUNDER</span>
-          <span style="font-weight: 600;">S. VARSHITH</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; gap: 16px;">
-          <span style="color: var(--lime, #c6ff3d); font-weight: 800; font-size: 10px;">CO-FOUNDER & CEO</span>
-          <span style="font-weight: 600;">P. LEO SANDAL</span>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(widget);
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', addFoundersWidget);
-  } else {
-    addFoundersWidget();
-  }
-})();
 
 // ===== GLOBAL RAZORPAY WRAPPER =====
-window.processRazorpayPayment = function(amountInRupees, description, onSuccess) {
+window.processRazorpayPayment = function(amountInRupees, description, onSuccess, onDismiss) {
   if (typeof Razorpay === 'undefined') {
     alert("Razorpay SDK not loaded. Please check your connection.");
+    if (typeof onDismiss === 'function') onDismiss();
     return;
   }
 
@@ -170,6 +119,7 @@ window.processRazorpayPayment = function(amountInRupees, description, onSuccess)
     "description": description || "Payment",
     "handler": function (response) {
       console.log("Razorpay Success:", response.razorpay_payment_id);
+      document.body.style.overflow = '';
       if (typeof onSuccess === 'function') {
         onSuccess(response.razorpay_payment_id);
       }
@@ -180,6 +130,20 @@ window.processRazorpayPayment = function(amountInRupees, description, onSuccess)
     },
     "theme": {
       "color": "#c6ff3d" // BMB Lime
+    },
+    "modal": {
+      "ondismiss": function() {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        
+        // Remove any lingering razorpay container just in case
+        setTimeout(() => {
+          const rzpNodes = document.querySelectorAll('.razorpay-container');
+          rzpNodes.forEach(n => n.remove());
+        }, 300);
+
+        if (typeof onDismiss === 'function') onDismiss();
+      }
     }
   };
   
@@ -187,6 +151,7 @@ window.processRazorpayPayment = function(amountInRupees, description, onSuccess)
   rzp.on('payment.failed', function (response) {
     console.error("Payment Failed:", response.error);
     alert("Payment failed: " + response.error.description);
+    if (typeof onDismiss === 'function') onDismiss();
   });
   rzp.open();
 };

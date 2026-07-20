@@ -19,15 +19,19 @@
     .venue-meta-item { display: flex; align-items: center; gap: 6px; }
     
     .grid-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 40px; margin-top: 20px; }
-    @media (max-width: 768px) { .grid-layout { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { 
+      .grid-layout { grid-template-columns: 1fr; gap: 60px; }
+      .venue-right { border-top: 1px dashed var(--card-line); padding-top: 40px; margin-top: -20px; }
+    }
     
-    .slot-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--card-line); padding: 14px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 14px; }
-    .slot-list-item:hover { border-color: var(--lime); }
+    .slot-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--card-line); padding: 14px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 14px; border-left-width: 4px; }
+    .slot-list-item:not(.booked) { border-left-color: var(--lime); }
+    .slot-list-item:hover:not(.booked) { border-color: var(--lime); }
     .slot-list-item.selected { border-color: var(--lime); background: rgba(198,255,61,0.1); color: var(--lime); }
-    .slot-list-item.booked { opacity: 0.5; pointer-events: none; }
+    .slot-list-item.booked { background: rgba(255,255,255,0.05); color: var(--text-dim); opacity: 0.6; pointer-events: none; border-color: transparent; }
     
     .date-pill { background: var(--bg); border: 1px solid var(--card-line); padding: 10px 16px; border-radius: 8px; text-align: center; cursor: pointer; min-width: 60px; transition: all 0.2s; flex-shrink: 0; }
-    .date-pill.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .date-pill.active { background: var(--lime); color: #0B1210; border-color: var(--lime); }
     .date-pill .day { font-size: 12px; font-weight: 600; opacity: 0.8; margin-bottom: 4px; }
     .date-pill .date { font-size: 16px; font-weight: 800; }
     
@@ -38,15 +42,23 @@
 </head>
 <body>
 
-  <nav style="position: relative;">
-    <div class="nav-wrap" style="justify-content: flex-end;">
-      <a href="index.html" class="logo" style="position: absolute; left: 50%; transform: translateX(-50%);">BOOK MY BOX</a>
-      <div class="nav-links">
-        <a href="index.html">Home</a>
-        <a href="about.html">About Us</a>
-      </div>
+  <header>
+    <div class="wrap">
+      <nav>
+        <a href="index.html" class="logo"><span class="dot"></span>BOOK MY BOX</a>
+        <div class="nav-links" id="navLinks">
+          <a href="index.html#boxes">Boxes</a>
+          <a href="index.html#plans">Membership</a>
+          <a href="squad-chat.html">Squad Chat</a>
+          <a href="about.html">About Us</a>
+        </div>
+        <div class="nav-right">
+          <a href="signin.html" class="btn btn-lime" id="authBtn">Sign in</a>
+          <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
+        </div>
+      </nav>
     </div>
-  </nav>
+  </header>
 
   <div id="loadingVenue" style="text-align: center; padding: 100px; color: var(--text-dim);">Loading venue details...</div>
 
@@ -57,11 +69,14 @@
       <div class="venue-left">
         <a href="index.html" style="color:var(--text-dim); text-decoration:none; font-size:14px; margin-bottom:16px; display:inline-block;">← Back to search</a>
         
-        <h1 class="venue-title" id="vTitle" style="font-size: 36px; margin: 0; line-height:1.1; margin-bottom:8px;">Venue Name</h1>
+        <div style="display:flex; align-items:center; gap: 16px; margin-bottom:8px; flex-wrap:wrap;">
+          <h1 class="venue-title" id="vTitle" style="font-size: 36px; margin: 0; line-height:1.1;">Venue Name</h1>
+          <span id="vPriceBadge" style="background:var(--card-line); padding:6px 12px; border-radius:100px; font-size:14px; font-weight:700; color:var(--text);"></span>
+        </div>
         
         <div style="color:var(--text-dim); font-size:14px; margin-bottom:24px; display:flex; align-items:center; gap:6px;">
           📍 <span id="vLoc">Location</span> · 
-          <span style="color:var(--lime);">⭐ <span id="vRating">4.8</span></span>
+          <span style="color:var(--lime);">⭐ <span id="vRating">4.8</span></span> <span id="vReviews" style="color:var(--text-dim);"></span>
         </div>
 
         <!-- Image Collage -->
@@ -108,27 +123,32 @@
             <!-- Slots injected via JS as list items -->
           </div>
 
-          <!-- Checkout summary (shows when slot selected) -->
-          <div id="bookingActionContainer" style="display: none; border-top: 1px dashed var(--card-line); padding-top: 16px;">
-            <div class="summary-row">
-              <span style="color:var(--text-dim);">Slot total</span>
-              <strong id="displaySelectedPrice">₹0</strong>
-            </div>
-            <div class="summary-row" id="displayDiscountRow" style="display: none;">
-              <span style="color:var(--cyan);">Wallet Discount</span>
-              <strong id="displayDiscountPrice" style="color:var(--cyan);">-₹0</strong>
-            </div>
-            <div class="summary-row">
-              <span style="color:var(--text-dim);">Payment</span>
-              <strong>At venue</strong>
-            </div>
-            <div class="summary-total" style="display:flex; justify-content:space-between; align-items:center;">
-              <span>Total</span>
-              <strong class="lime-text" id="displayFinalPrice" style="font-size:20px;">₹0</strong>
+          <!-- Checkout summary -->
+          <div id="bookingActionContainer" style="border-top: 1px dashed var(--card-line); padding-top: 16px;">
+            <div id="summaryRows" style="display:none;">
+              <div class="summary-row">
+                <span style="color:var(--text-dim);">Slot total</span>
+                <strong id="displaySelectedPrice">₹0</strong>
+              </div>
+              <div class="summary-row" id="displayDiscountRow" style="display: none;">
+                <span style="color:var(--cyan);">Wallet Discount</span>
+                <strong id="displayDiscountPrice" style="color:var(--cyan);">-₹0</strong>
+              </div>
+              <div class="summary-row">
+                <span style="color:var(--text-dim);">Payment</span>
+                <strong>At venue</strong>
+              </div>
+              <div class="summary-total" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>Total</span>
+                <strong class="lime-text" id="displayFinalPrice" style="font-size:20px;">₹0</strong>
+              </div>
             </div>
             
-            <button class="btn btn-lime btn-full" id="payAtVenueBtn" style="margin-top:20px; font-size:15px; padding:16px; font-weight:800;">Reserve slot</button>
-            <p style="text-align:center; color:var(--text-dim); font-size:12px; margin-top:12px;" id="reservationHint">No payment now - pay ₹X at the venue</p>
+            <button class="btn btn-lime btn-full" id="payAtVenueBtn" style="margin-top:20px; font-size:15px; padding:16px; font-weight:800;" disabled>Select a slot to book</button>
+            <div style="text-align:center; margin-top:12px;">
+              <p style="color:var(--text-dim); font-size:12px; margin:0;" id="reservationHint">No advance payment needed</p>
+              <p style="color:var(--cyan); font-size:12px; margin:4px 0 0 0; font-weight:700;">🤝 Booking with friends? Split the cost in app</p>
+            </div>
           </div>
 
         </div>
@@ -137,8 +157,32 @@
     </div>
   </div>
 
+  <!-- Booking Success Modal -->
+  <div id="bookingSuccessModal" style="display: none; position: fixed; inset: 0; background: rgba(10, 14, 20, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--card); border: 1px solid var(--card-line); border-radius: 24px; max-width: 440px; width: 100%; padding: 40px 32px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+      <div style="width: 80px; height: 80px; background: rgba(198,255,61,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; border: 2px solid var(--lime);">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <h2 style="font-family: 'Anton', sans-serif; font-size: 28px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 8px 0; color: #fff;">Booking Confirmed!</h2>
+      <p style="color: var(--text-dim); font-size: 14.5px; line-height: 1.5; margin: 0 0 28px 0;">Your slot has been successfully reserved. Get your squad ready and pay at the venue!</p>
+      
+      <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--card-line); border-radius: 16px; padding: 16px; margin-bottom: 28px; text-align: left;">
+        <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--lime); margin-bottom: 8px; letter-spacing: 0.5px;">Booking Details</div>
+        <div style="font-weight: 800; font-size: 16px; color: #fff; margin-bottom: 4px;" id="successVenueName">Venue Name</div>
+        <div style="font-size: 13.5px; color: var(--text-dim);" id="successDateTime">Date & Time</div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <a href="index.html" class="btn btn-outline" style="text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 14px; font-size: 14px; font-weight: 700; border-color: rgba(255,255,255,0.15);">Back to Home</a>
+        <a href="profile.html" class="btn btn-lime" style="text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 14px; font-size: 14px; font-weight: 800;">View History</a>
+      </div>
+    </div>
+  </div>
+
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="firebase-config.js?v=4"></script>
-  <script src="venue-details.js?v=1"></script>
+  <script src="venue-details.js?v=2"></script>
 </body>
 </html>

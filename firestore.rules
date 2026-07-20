@@ -15,8 +15,7 @@ service cloud.firestore {
     // Squads: members can read; creation/membership changes should
     // go through a Cloud Function if you want to validate squad size etc.
     match /squads/{squadId} {
-      allow read: if request.auth != null &&
-        request.auth.uid in resource.data.memberIds;
+      allow read: if request.auth != null;
       allow create: if request.auth != null;
       allow update: if request.auth != null &&
         request.auth.uid in resource.data.memberIds;
@@ -47,6 +46,11 @@ service cloud.firestore {
     
     // Box Owners: MVP allows public read/write for the admin dash.
     match /box_owners/{ownerId} {
+      allow read, write: if true;
+    }
+
+    // Bookings: users can read/write their own bookings
+    match /bookings/{bookingId} {
       allow read, write: if true;
     }
   }

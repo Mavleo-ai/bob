@@ -17,7 +17,62 @@
 
 <body>
 
-  <div class="ticker-bar">
+  <!-- Cricket Animations (Fixed Background) -->
+  <div class="cricket-scene" aria-hidden="true">
+    <!-- Floating cricket balls -->
+    <svg class="cricket-ball ball-1" viewBox="0 0 40 40" width="40" height="40">
+      <circle cx="20" cy="20" r="18" fill="#e74c3c" />
+      <path d="M8 14c4 6 10 10 18 8" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
+      <path d="M6 22c6 4 14 4 20-2" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
+      <line x1="10" y1="15" x2="9" y2="17" stroke="#fff" stroke-width="0.8" />
+      <line x1="14" y1="17" x2="13" y2="19" stroke="#fff" stroke-width="0.8" />
+      <line x1="18" y1="18" x2="17" y2="20" stroke="#fff" stroke-width="0.8" />
+      <line x1="22" y1="18" x2="21" y2="20" stroke="#fff" stroke-width="0.8" />
+      <line x1="26" y1="17" x2="25" y2="19" stroke="#fff" stroke-width="0.8" />
+    </svg>
+    <svg class="cricket-ball ball-2" viewBox="0 0 40 40" width="28" height="28">
+      <circle cx="20" cy="20" r="18" fill="#e74c3c" />
+      <path d="M8 14c4 6 10 10 18 8" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
+      <path d="M6 22c6 4 14 4 20-2" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
+    </svg>
+    <svg class="cricket-ball ball-3" viewBox="0 0 40 40" width="22" height="22">
+      <circle cx="20" cy="20" r="18" fill="#e74c3c" />
+      <path d="M8 14c4 6 10 10 18 8" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
+      <path d="M6 22c6 4 14 4 20-2" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
+    </svg>
+
+    <!-- Stumps -->
+    <svg class="stumps-icon" viewBox="0 0 60 80" width="50" height="65">
+      <rect x="12" y="10" width="4" height="70" rx="2" fill="#C6FF3D" opacity="0.15" />
+      <rect x="28" y="10" width="4" height="70" rx="2" fill="#C6FF3D" opacity="0.15" />
+      <rect x="44" y="10" width="4" height="70" rx="2" fill="#C6FF3D" opacity="0.15" />
+      <rect x="8" y="10" width="44" height="4" rx="2" fill="#C6FF3D" opacity="0.2" />
+      <rect x="8" y="16" width="44" height="4" rx="2" fill="#C6FF3D" opacity="0.2" />
+    </svg>
+
+    <!-- Bat silhouette -->
+    <svg class="bat-icon" viewBox="0 0 30 100" width="24" height="80">
+      <rect x="10" y="0" width="10" height="55" rx="5" fill="#C6FF3D" opacity="0.12" />
+      <rect x="12" y="55" width="6" height="40" rx="3" fill="#C6FF3D" opacity="0.08" />
+      <rect x="8" y="52" width="14" height="6" rx="2" fill="#C6FF3D" opacity="0.1" />
+    </svg>
+
+    <!-- Hit trajectory arc -->
+    <svg class="hit-arc" viewBox="0 0 300 120" width="300" height="120">
+      <path d="M10 110 Q80 -20 290 30" stroke="var(--lime)" stroke-width="2" fill="none" stroke-dasharray="8 6"
+        opacity="0.15" />
+    </svg>
+
+    <!-- Six! particles -->
+    <div class="six-particles">
+      <span class="particle"></span>
+      <span class="particle"></span>
+      <span class="particle"></span>
+      <span class="particle"></span>
+      <span class="particle"></span>
+      <span class="particle"></span>
+    </div>
+  </div>  <div class="ticker-bar">
     <div class="ticker-track mono" id="tickerTrack">
       <!-- duplicated via JS for seamless loop -->
     </div>
@@ -51,87 +106,23 @@
   <section class="hero">
     <div class="glow"></div>
 
-    <!-- Cricket Animations -->
-    <div class="cricket-scene" aria-hidden="true">
-      <!-- Floating cricket balls -->
-      <svg class="cricket-ball ball-1" viewBox="0 0 40 40" width="40" height="40">
-        <circle cx="20" cy="20" r="18" fill="#e74c3c" />
-        <path d="M8 14c4 6 10 10 18 8" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
-        <path d="M6 22c6 4 14 4 20-2" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
-        <line x1="10" y1="15" x2="9" y2="17" stroke="#fff" stroke-width="0.8" />
-        <line x1="14" y1="17" x2="13" y2="19" stroke="#fff" stroke-width="0.8" />
-        <line x1="18" y1="18" x2="17" y2="20" stroke="#fff" stroke-width="0.8" />
-        <line x1="22" y1="18" x2="21" y2="20" stroke="#fff" stroke-width="0.8" />
-        <line x1="26" y1="17" x2="25" y2="19" stroke="#fff" stroke-width="0.8" />
-      </svg>
-      <svg class="cricket-ball ball-2" viewBox="0 0 40 40" width="28" height="28">
-        <circle cx="20" cy="20" r="18" fill="#e74c3c" />
-        <path d="M8 14c4 6 10 10 18 8" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
-        <path d="M6 22c6 4 14 4 20-2" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
-      </svg>
-      <svg class="cricket-ball ball-3" viewBox="0 0 40 40" width="22" height="22">
-        <circle cx="20" cy="20" r="18" fill="#e74c3c" />
-        <path d="M8 14c4 6 10 10 18 8" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
-        <path d="M6 22c6 4 14 4 20-2" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" />
-      </svg>
 
-      <!-- Stumps -->
-      <svg class="stumps-icon" viewBox="0 0 60 80" width="50" height="65">
-        <rect x="12" y="10" width="4" height="70" rx="2" fill="#C6FF3D" opacity="0.15" />
-        <rect x="28" y="10" width="4" height="70" rx="2" fill="#C6FF3D" opacity="0.15" />
-        <rect x="44" y="10" width="4" height="70" rx="2" fill="#C6FF3D" opacity="0.15" />
-        <rect x="8" y="10" width="44" height="4" rx="2" fill="#C6FF3D" opacity="0.2" />
-        <rect x="8" y="16" width="44" height="4" rx="2" fill="#C6FF3D" opacity="0.2" />
-      </svg>
 
-      <!-- Bat silhouette -->
-      <svg class="bat-icon" viewBox="0 0 30 100" width="24" height="80">
-        <rect x="10" y="0" width="10" height="55" rx="5" fill="#C6FF3D" opacity="0.12" />
-        <rect x="12" y="55" width="6" height="40" rx="3" fill="#C6FF3D" opacity="0.08" />
-        <rect x="8" y="52" width="14" height="6" rx="2" fill="#C6FF3D" opacity="0.1" />
-      </svg>
-
-      <!-- Hit trajectory arc -->
-      <svg class="hit-arc" viewBox="0 0 300 120" width="300" height="120">
-        <path d="M10 110 Q80 -20 290 30" stroke="var(--lime)" stroke-width="2" fill="none" stroke-dasharray="8 6"
-          opacity="0.15" />
-      </svg>
-
-      <!-- Six! particles -->
-      <div class="six-particles">
-        <span class="particle"></span>
-        <span class="particle"></span>
-        <span class="particle"></span>
-        <span class="particle"></span>
-        <span class="particle"></span>
-        <span class="particle"></span>
-      </div>
-    </div>
-
-    <div class="wrap hero-inner">
-      <div class="eyebrow"><span class="pulse"></span> 40+ BOXES LIVE ACROSS HYDERABAD</div>
-      <h1>BOOK YOUR BOX.<br><span class="stroke">STACK YOUR SQUAD.</span></h1>
-      <p>Cricket boxes, membership discounts, and your crew's group chat — all in one app. No more 11 WhatsApp forwards
-        to lock a slot.</p>
-      <div class="hero-ctas">
-        <button class="btn btn-lime btn-lg">Find a box near me</button>
-        <button class="btn btn-outline btn-lg">See membership plans</button>
+    <div class="wrap hero-inner" style="padding-top: 60px; padding-bottom: 40px;">
+      <div class="eyebrow"><span class="pulse"></span> PREMIUM BOXES ACROSS HYDERABAD</div>
+      <h1 style="font-size: clamp(48px, 8vw, 84px); margin-bottom: 24px;">BOOK YOUR BOX.<br><span class="stroke">STACK YOUR SQUAD.</span></h1>
+      <p style="font-size: 18px; max-width: 600px; margin: 0 auto 40px; color: var(--text-dim);">Cricket boxes, membership discounts, and your crew's group chat — all in one app. No more 11 WhatsApp forwards to lock a slot.</p>
+      
+      <div class="hero-search" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 100px; display: flex; max-width: 500px; margin: 0 auto 24px; backdrop-filter: blur(10px);">
+        <div style="flex: 1; display: flex; align-items: center; padding: 0 16px; gap: 8px;">
+          <span style="opacity: 0.5;">📍</span>
+          <input type="text" placeholder="Search by area (e.g. Gachibowli)" style="background: transparent; border: none; color: white; width: 100%; outline: none; font-size: 15px; font-family: 'Manrope', sans-serif;">
+        </div>
+        <a href="#boxes" class="btn btn-lime" style="padding: 12px 24px; border-radius: 100px;">Find Box</a>
       </div>
 
-      <div class="scoreboard">
-        <div class="score-cell">
-          <div class="num">₹200</div>
-          <div class="lbl">Membership /mo</div>
-        </div>
-        <div class="score-cell">
-          <div class="num">15</div>
-          <div class="lbl">Box visits</div>
-        </div>
-        <div class="score-cell">
-          <div class="num">₹450</div>
-          <div class="lbl">Per hour, members</div>
-        </div>
-
+      <div class="hero-ctas" style="margin-top: 16px;">
+        <a href="#plans" class="btn btn-outline" style="border-color: transparent; color: var(--text-dim);">See membership plans &rarr;</a>
       </div>
     </div>
   </section>
@@ -143,12 +134,15 @@
           <span class="tag">// NEARBY BOXES</span>
           <h2>Boxes near my area</h2>
         </div>
-        <a href="#" class="see-all">See all boxes →</a>
+        <a href="#boxes" class="see-all">See all boxes →</a>
       </div>
 
       <div class="venue-row" id="dynamicVenuesGrid">
         <!-- Venues will be injected here dynamically by script.js -->
-        <p style="color: var(--text-dim); padding: 20px;">Loading boxes...</p>
+        <div class="card skeleton-loader" style="min-height: 280px; border-color: transparent;"></div>
+        <div class="card skeleton-loader" style="min-height: 280px; border-color: transparent;"></div>
+        <div class="card skeleton-loader" style="min-height: 280px; border-color: transparent;"></div>
+        <div class="card skeleton-loader" style="min-height: 280px; border-color: transparent;"></div>
       </div>
     </div>
   </section>
@@ -162,8 +156,8 @@
         </div>
       </div>
 
-      <div class="plans" style="justify-content: center;">
-        <div class="plan" style="max-width: 400px; width: 100%;">
+      <div class="plans" style="justify-content: center; flex-wrap: wrap; gap: 20px;">
+        <div class="plan" style="max-width: 350px; width: 100%;">
           <h3>Walk-in Booking</h3>
           <div class="price-big">₹500 <span>/ hour</span></div>
           <p class="desc">No commitment, book whenever you want.</p>
@@ -172,29 +166,48 @@
             <li>Access to all listed boxes</li>
             <li>Standard slot priority</li>
           </ul>
-          <button class="btn btn-outline" onclick="document.getElementById('venues').scrollIntoView({behavior: 'smooth'})">Book a Venue</button>
+          <button class="btn btn-outline" onclick="document.getElementById('venues').scrollIntoView({behavior: 'smooth'})" style="margin-top: auto;">Book a Venue</button>
         </div>
 
-        <div class="plan featured" style="max-width: 400px; width: 100%;">
-          <span class="plan-badge">MOST PICKED</span>
-          <h3>Book My Box Membership</h3>
+        <div class="plan" style="max-width: 350px; width: 100%;">
+          <h3>Pro Membership</h3>
           <div class="price-big">₹200 <span>/ month</span></div>
-          <p class="desc">15 sessions a month, unlocked at member pricing.</p>
+          <p class="desc">Unlock member pricing for a single home box.</p>
           <ul>
             <li>15 box visits per cycle</li>
-            <li>₹450/hr instead of ₹500</li>
+            <li>₹50 off at your <strong>selected home box</strong></li>
             <li>Early access to new boxes</li>
-            <li>Priority slot booking</li>
           </ul>
           
           <div style="background: rgba(198,255,61,0.1); border: 1px dashed rgba(198,255,61,0.4); border-radius: 8px; padding: 12px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px;">
             <span style="font-size: 20px; flex-shrink: 0;">🎁</span>
             <div style="text-align: left;">
               <strong style="color: var(--lime); font-size: 13px; display: block; margin-bottom: 4px;">Referral Perk</strong>
-              <span style="font-size: 12px; color: var(--text-dim); line-height: 1.4; display: block;">Free 3 Diet Cokes on your next visit if you refer 10 friends!</span>
+              <span style="font-size: 12px; color: var(--text-dim); line-height: 1.4; display: block;">Free 3 Diet Cokes if you refer 10 friends!</span>
             </div>
           </div>
-          <button class="btn btn-lime" id="getMembershipBtn">Get membership</button>
+          <button class="btn btn-lime" id="getProMembershipBtn" data-plan="pro" style="margin-top: auto;">Get Pro</button>
+        </div>
+
+        <div class="plan featured" style="max-width: 350px; width: 100%;">
+          <span class="plan-badge">MOST PICKED</span>
+          <h3>Pro Max Membership</h3>
+          <div class="price-big">₹400 <span>/ month</span></div>
+          <p class="desc">Ultimate flexibility. Member pricing everywhere.</p>
+          <ul>
+            <li>15 box visits per cycle</li>
+            <li>₹50 off <strong>across all boxes in Hyd</strong></li>
+            <li>Priority slot booking</li>
+          </ul>
+          
+          <div id="referralBox" style="background: rgba(198,255,61,0.1); border: 1px dashed rgba(198,255,61,0.4); border-radius: 8px; padding: 12px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px;">
+            <span style="font-size: 20px; flex-shrink: 0;">🎁</span>
+            <div style="text-align: left;">
+              <strong style="color: var(--lime); font-size: 13px; display: block; margin-bottom: 4px;">Pro Max Referral Perk</strong>
+              <span style="font-size: 12px; color: var(--text-dim); line-height: 1.4; display: block;">Free 3 Diet Cokes if you refer just 5 friends!</span>
+            </div>
+          </div>
+          <button class="btn btn-lime" id="getProMaxMembershipBtn" data-plan="promax" style="margin-top: auto;">Get Pro Max</button>
         </div>
       </div>
     </div>
@@ -343,13 +356,16 @@
           <h3>Unlock Free Cokes</h3>
           <p>Refer 10 friends who subscribe → get 3 free Diet Cokes on your next box visit.</p>
           
-          <div class="ref-progress-container" style="margin-top: 18px;">
+          <div class="ref-progress-container" style="margin-top: 18px; position: relative;">
             <div class="ref-progress-header" style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 8px;">
               <span>Your Progress</span>
               <span id="homeRefProgressLabel" style="color: var(--text-dim);">Sign in to track</span>
             </div>
-            <div class="progress-bar-bg" style="background: rgba(255,255,255,0.06); height: 8px; border-radius: 10px; overflow: hidden;">
-              <div class="progress-bar-fill" id="homeRefProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--lime), var(--cyan)); border-radius: 10px; transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);"></div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div class="progress-bar-bg" style="background: rgba(255,255,255,0.06); height: 8px; border-radius: 10px; overflow: hidden; flex: 1;">
+                <div class="progress-bar-fill" id="homeRefProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--lime), var(--cyan)); border-radius: 10px; transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);"></div>
+              </div>
+              <img src="diet-coke-can.png" alt="Reward" style="height: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform: rotate(15deg);">
             </div>
           </div>
           
@@ -388,25 +404,34 @@
   <div id="checkoutModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
     <div class="modal-content" style="background: var(--card); border: 1px solid var(--card-line); border-radius: 20px; width: 90%; max-width: 400px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); position: relative;">
       <button id="closeCheckoutBtn" style="position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--text-dim); font-size: 24px; cursor: pointer;">&times;</button>
-      <h3 style="margin-top: 0; font-family: 'Manrope', sans-serif; font-size: 20px; font-weight: 800;">Get PRO Membership</h3>
-      <p style="color: var(--text-dim); font-size: 14px; margin-bottom: 24px;">15 sessions/month at locked-in member rates.</p>
+      <h3 id="checkoutModalTitle" style="margin-top: 0; font-family: 'Manrope', sans-serif; font-size: 20px; font-weight: 800;">Get Membership</h3>
+      <p id="checkoutModalDesc" style="color: var(--text-dim); font-size: 14px; margin-bottom: 24px;">15 sessions/month at locked-in member rates.</p>
       
+      <div id="homeBoxSelection" style="display: none; margin-bottom: 20px;">
+        <label for="homeBoxSelect" style="display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 8px;">Select your Home Box</label>
+        <select id="homeBoxSelect" style="width: 100%; background: #1a1e23; border: 1px solid var(--card-line); padding: 12px; border-radius: 8px; color: #fff; font-family: 'Space Mono', monospace; font-size: 14px; outline: none; appearance: auto;">
+          <option value="" disabled selected>Loading boxes...</option>
+        </select>
+        <div style="font-size: 11px; color: var(--red); margin-top: 4px; display: none;" id="homeBoxError">Please select a home box to continue.</div>
+      </div>
+
       <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-line); padding: 16px; border-radius: 12px; margin-bottom: 24px;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
           <span style="color: var(--text-dim); font-size: 14px;">Total due today</span>
-          <span style="font-weight: 700; font-family: 'Space Mono', monospace;">₹200</span>
+          <span id="checkoutModalPrice" style="font-weight: 700; font-family: 'Space Mono', monospace;">₹200</span>
         </div>
       </div>
       
-
-      
-      <button id="confirmCheckoutBtn" class="btn btn-lime btn-full" style="width: 100%; font-size: 16px; padding: 14px;">Pay ₹200 & Subscribe</button>
+      <button id="confirmCheckoutBtn" class="btn btn-lime btn-full" style="width: 100%; font-size: 16px; padding: 14px;">Pay & Subscribe</button>
     </div>
   </div>
 
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="firebase-config.js"></script>
-  <script src="script.js"></script>
+  <!-- Diet Coke Falling Animation -->
+  <img id="diet-coke-can" src="diet-coke-can.png" alt="Diet Coke can">
+
+  <script src="script.js?v=2"></script>
 
   <script>
     // Geolocation — request on load and update nav pill

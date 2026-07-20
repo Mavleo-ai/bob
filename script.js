@@ -59,28 +59,91 @@ function showToast(message, type = 'info') {
 }
 
 // ===== MEMBERSHIP CHECKOUT MODAL =====
-const getMembershipBtn   = document.getElementById('getMembershipBtn');
+const getProMembershipBtn    = document.getElementById('getProMembershipBtn');
+const getProMaxMembershipBtn = document.getElementById('getProMaxMembershipBtn');
 const checkoutModal      = document.getElementById('checkoutModal');
 const closeCheckoutBtn   = document.getElementById('closeCheckoutBtn');
 const confirmCheckoutBtn = document.getElementById('confirmCheckoutBtn');
+const homeBoxSelection   = document.getElementById('homeBoxSelection');
+const homeBoxSelect      = document.getElementById('homeBoxSelect');
+const homeBoxError       = document.getElementById('homeBoxError');
+const checkoutModalTitle = document.getElementById('checkoutModalTitle');
+const checkoutModalDesc  = document.getElementById('checkoutModalDesc');
+const checkoutModalPrice = document.getElementById('checkoutModalPrice');
 
-if (getMembershipBtn && checkoutModal) {
-  getMembershipBtn.addEventListener('click', function (e) {
-    e.preventDefault();
-    if (typeof auth !== 'undefined' && !auth.currentUser) {
-      window.location.href = 'signin.html';
-      return;
+let currentCheckoutPlan = null; // 'pro' or 'promax'
+
+function openCheckoutModal(plan) {
+  if (typeof auth !== 'undefined' && !auth.currentUser) {
+    window.location.href = 'signin.html';
+    return;
+  }
+  
+  currentCheckoutPlan = plan;
+  if (homeBoxError) homeBoxError.style.display = 'none';
+
+  if (plan === 'pro') {
+    if (checkoutModalTitle) checkoutModalTitle.textContent = 'Get Pro Membership';
+    if (checkoutModalDesc) checkoutModalDesc.textContent = 'Member pricing at your selected home box.';
+    if (checkoutModalPrice) checkoutModalPrice.textContent = '₹200';
+    if (confirmCheckoutBtn) confirmCheckoutBtn.textContent = 'Pay ₹200 & Subscribe';
+    if (homeBoxSelection) homeBoxSelection.style.display = 'block';
+    
+    // Fetch venues if dropdown is empty
+    if (homeBoxSelect && homeBoxSelect.options.length <= 1 && typeof firebase !== 'undefined') {
+      const db = firebase.firestore();
+      db.collection('venues').get().then(snap => {
+        homeBoxSelect.innerHTML = '<option value="" disabled selected>Select a box...</option>';
+        snap.forEach(doc => {
+          const v = doc.data();
+          const opt = document.createElement('option');
+          opt.value = doc.id;
+          opt.textContent = v.name || 'Unnamed Box';
+          homeBoxSelect.appendChild(opt);
+        });
+      }).catch(err => console.error("Error loading venues for select", err));
     }
-    checkoutModal.style.display = 'flex';
-  });
+  } else {
+    if (checkoutModalTitle) checkoutModalTitle.textContent = 'Get Pro Max Membership';
+    if (checkoutModalDesc) checkoutModalDesc.textContent = 'Ultimate flexibility. Member pricing everywhere.';
+    if (checkoutModalPrice) checkoutModalPrice.textContent = '₹400';
+    if (confirmCheckoutBtn) confirmCheckoutBtn.textContent = 'Pay ₹400 & Subscribe';
+    if (homeBoxSelection) homeBoxSelection.style.display = 'none';
+  }
 
-  closeCheckoutBtn && closeCheckoutBtn.addEventListener('click', () => {
-    checkoutModal.style.display = 'none';
-  });
+  if (checkoutModal) checkoutModal.style.display = 'flex';
+}
 
-  confirmCheckoutBtn && confirmCheckoutBtn.addEventListener('click', function () {
-    if (typeof auth !== 'undefined' && auth.currentUser &&
-        typeof firebase !== 'undefined' && firebase.firestore) {
+if (getProMembershipBtn) {
+  getProMembershipBtn.addEventListener('click', (e) => { e.preventDefault(); openCheckoutModal('pro'); });
+}
+if (getProMaxMembershipBtn) {
+  getProMaxMembershipBtn.addEventListener('click', (e) => { e.preventDefault(); openCheckoutModal('promax'); });
+}
+// Fallback for legacy button id if it still exists elsewhere
+const getMembershipBtn = document.getElementById('getMembershipBtn');
+if (getMembershipBtn) {
+  getMembershipBtn.addEventListener('click', (e) => { e.preventDefault(); openCheckoutModal('promax'); });
+}
+
+if (closeCheckoutBtn) {
+  closeCheckoutBtn.addEventListener('click', () => { checkoutModal.style.display = 'none'; });
+}
+
+if (confirmCheckoutBtn) {
+  confirmCheckoutBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    
+    let selectedBoxId = null;
+    if (currentCheckoutPlan === 'pro') {
+      selectedBoxId = homeBoxSelect ? homeBoxSelect.value : null;
+      if (!selectedBoxId) {
+        if (homeBoxError) homeBoxError.style.display = 'block';
+        return;
+      }
+    }
+    
+    if (typeof auth !== 'undefined' && auth.currentUser && typeof firebase !== 'undefined' && firebase.firestore) {
       const db = firebase.firestore();
       const ogText = confirmCheckoutBtn.textContent;
       confirmCheckoutBtn.textContent = 'Processing...';
@@ -105,33 +168,34 @@ if (getMembershipBtn && checkoutModal) {
               return db.runTransaction(transaction => {
                 return transaction.get(referrerRef).then(referrerDoc => {
                   let currentProgress = 0;
+                  let referrerPlan = 'promax'; // default to promax for legacy/unknown
                   if (referrerDoc.exists) {
                     currentProgress = referrerDoc.data().referrals_current || 0;
+                    referrerPlan = referrerDoc.data().subscriptionType || 'promax';
                   }
                   
                   let nextProgress = currentProgress + 1;
                   let unlockReward = false;
-                  if (nextProgress >= 10) {
+                  const threshold = (referrerPlan === 'pro') ? 10 : 5;
+                  
+                  if (nextProgress >= threshold) {
                     nextProgress = 0;
                     unlockReward = true;
                   }
                   
-                  // Update referrer stats
                   transaction.set(referrerRef, {
                     referrals_total: firebase.firestore.FieldValue.increment(1),
                     referrals_current: nextProgress
                   }, { merge: true });
                   
-                  // Confirm the referral state
                   transaction.set(referralRef, {
                     status: 'confirmed',
                     confirmed_at: firebase.firestore.FieldValue.serverTimestamp()
                   }, { merge: true });
                   
-                  // Create Coke reward if 10th confirmed referral is reached
                   if (unlockReward) {
                     const rewardRef = db.collection('rewards').doc();
-                    const expires = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000); // 60 days
+                    const expires = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000); 
                     transaction.set(rewardRef, {
                       user_id: referrerId,
                       reward_type: '3_diet_cokes',
@@ -145,18 +209,37 @@ if (getMembershipBtn && checkoutModal) {
             });
         };
 
-        const subPromise = db.collection('users').doc(auth.currentUser.uid).set({
-          hasSubscription: true
-        }, { merge: true });
+        const updateData = {
+          hasSubscription: true,
+          subscriptionType: currentCheckoutPlan
+        };
+        if (currentCheckoutPlan === 'pro') {
+          updateData.homeBoxId = selectedBoxId;
+        }
 
+        const subPromise = db.collection('users').doc(auth.currentUser.uid).set(updateData, { merge: true });
         const refPromise = confirmReferral(auth.currentUser.uid);
 
         Promise.all([subPromise, refPromise]).then(() => {
           localStorage.setItem('hasSubscription', 'true');
+          localStorage.setItem('subscriptionType', currentCheckoutPlan);
+          if (currentCheckoutPlan === 'pro' && selectedBoxId) {
+             localStorage.setItem('homeBoxId', selectedBoxId);
+          }
           checkoutModal.style.display = 'none';
           showToast('🎉 Membership activated! Welcome to the squad.', 'success');
-          getMembershipBtn.textContent = 'Active Member ✅';
-          getMembershipBtn.style.backgroundColor = '#34C759';
+          
+          if (currentCheckoutPlan === 'pro' && getProMembershipBtn) {
+            getProMembershipBtn.textContent = 'Active Pro ✅';
+            getProMembershipBtn.style.backgroundColor = '#34C759';
+            getProMembershipBtn.style.color = '#fff';
+            getProMembershipBtn.style.borderColor = '#34C759';
+          } else if (currentCheckoutPlan === 'promax' && getProMaxMembershipBtn) {
+            getProMaxMembershipBtn.textContent = 'Active Pro Max ✅';
+            getProMaxMembershipBtn.style.backgroundColor = '#34C759';
+            getProMaxMembershipBtn.style.color = '#fff';
+            getProMaxMembershipBtn.style.borderColor = '#34C759';
+          }
         }).catch(err => {
           console.error("Error activating membership:", err);
           alert("Error processing membership.");
@@ -164,20 +247,29 @@ if (getMembershipBtn && checkoutModal) {
           confirmCheckoutBtn.disabled = false;
         });
       };
-
+      
       if (typeof window.processRazorpayPayment === 'function') {
-        window.processRazorpayPayment(200, 'PRO Membership', () => {
+        const amount = currentCheckoutPlan === 'promax' ? 400 : 200;
+        const desc = currentCheckoutPlan === 'promax' ? 'Pro Max Membership' : 'Pro Membership';
+        window.processRazorpayPayment(amount, desc, () => {
           processMembership();
-        });
-        
-        // reset button in case they cancel
-        setTimeout(() => {
+        }, () => {
           confirmCheckoutBtn.textContent = ogText;
           confirmCheckoutBtn.disabled = false;
-        }, 3000);
+          if (checkoutModal) checkoutModal.style.display = 'none';
+        });
       } else {
         processMembership();
       }
+    }
+  });
+}
+
+// Close checkout modal if clicking the dark overlay background
+if (checkoutModal) {
+  checkoutModal.addEventListener('click', (e) => {
+    if (e.target === checkoutModal) {
+      checkoutModal.style.display = 'none';
     }
   });
 }
@@ -356,6 +448,8 @@ function loadVenues() {
       return;
     }
     
+    const fragment = document.createDocumentFragment();
+    
     snapshot.forEach(doc => {
       const v = doc.data();
       const bgImg = v.image || 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=500';
@@ -374,8 +468,26 @@ function loadVenues() {
           </div>
         </div>
       `;
-      dynamicVenuesGrid.appendChild(card);
+      fragment.appendChild(card);
     });
+    
+    // Add "Coming Soon" placeholder card to fill out grid visually
+    const comingSoon = document.createElement('div');
+    comingSoon.className = 'card';
+    comingSoon.style.opacity = '0.6';
+    comingSoon.style.borderStyle = 'dashed';
+    comingSoon.innerHTML = `
+      <div class="venue-img" style="background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; height: 160px;">
+        <span style="font-size: 32px; filter: grayscale(1); opacity: 0.5;">🚧</span>
+      </div>
+      <div class="venue-body" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; height: 120px;">
+        <h3 style="color: var(--text-dim);">Coming Soon</h3>
+        <div style="font-size: 13px; color: var(--text-dim); margin-top: 4px;">More boxes loading</div>
+      </div>
+    `;
+    fragment.appendChild(comingSoon);
+    
+    dynamicVenuesGrid.appendChild(fragment);
   });
 }
 
@@ -413,3 +525,92 @@ if (document.getElementById('dynamicVenuesGrid')) {
 }
 
 // Razorpay integration removed as per request
+
+// ===== DIET COKE CAN FALLING ANIMATION =====
+(function(){
+  const can = document.getElementById('diet-coke-can');
+  const refBox = document.getElementById('referralBox');
+  if (!can || !refBox) return;
+
+  const lanes = [15, 70, 40, 85, 25];
+  
+  let ticking = false;
+  let cachedRefBoxTop = 0;
+  let cachedRefBoxLeft = 0;
+  let cachedRefBoxWidth = 0;
+  
+  function updateCache() {
+    const rect = refBox.getBoundingClientRect();
+    cachedRefBoxTop = rect.top + window.scrollY;
+    cachedRefBoxLeft = rect.left;
+    cachedRefBoxWidth = rect.width;
+  }
+  
+  function updateAnimation(){
+    const scrollY = window.scrollY;
+    
+    // The can should be already placed when the user gets to the subscription section.
+    // We set the target scroll to when the section is just about to enter the viewport.
+    const targetScrollY = Math.max(1, cachedRefBoxTop - window.innerHeight + 50);
+    
+    let progress = scrollY / targetScrollY;
+    let isLanded = false;
+    
+    if (progress >= 1) {
+      progress = 1;
+      isLanded = true;
+    }
+
+    if (isLanded) {
+      can.style.position = 'absolute';
+      can.style.top = `${cachedRefBoxTop - 40}px`;
+      can.style.left = `${cachedRefBoxLeft + cachedRefBoxWidth - 60}px`; 
+      can.style.transform = `rotate(15deg)`;
+      can.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    } else {
+      can.style.position = 'fixed';
+      can.style.top = '0px';
+      can.style.transition = 'none'; // CRITICAL: Remove transition during scroll to avoid lag
+      
+      const boxTopAtTarget = cachedRefBoxTop - targetScrollY;
+      const travel = boxTopAtTarget + 180 - 40; 
+      let y = -180 + progress * travel;
+
+      let rotate = progress * 540; 
+
+      const seg = progress * (lanes.length - 1);
+      const i = Math.floor(seg);
+      const t = seg - i;
+      const laneA = lanes[i] ?? lanes[lanes.length - 1];
+      const laneB = lanes[i + 1] ?? lanes[lanes.length - 1];
+      let xVW = laneA + (laneB - laneA) * t;
+
+      const wobble = Math.sin(progress * 20) * 15;
+
+      can.style.left = `calc(${xVW}vw + ${wobble}px)`;
+      can.style.transform = `translateY(${y}px) rotate(${rotate}deg)`;
+    }
+    ticking = false;
+  }
+  
+  function onScroll() {
+    if (!ticking) {
+      window.requestAnimationFrame(updateAnimation);
+      ticking = true;
+    }
+  }
+  
+  function onResize() {
+    updateCache();
+    onScroll();
+  }
+
+  window.addEventListener('scroll', onScroll, { passive:true });
+  window.addEventListener('resize', onResize);
+  
+  // Wait a tiny bit for layout before initial position
+  setTimeout(() => {
+    updateCache();
+    onScroll();
+  }, 100);
+})();

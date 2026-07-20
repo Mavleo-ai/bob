@@ -75,7 +75,8 @@
           </div>
           <div class="card-body">
             <div class="membership-info">
-              <div class="plan-type">Monthly PRO • <span class="rate">₹450/hr locked rate</span></div>
+              <div class="plan-type" id="profilePlanType">Monthly PRO</div>
+              <div class="cycle-dates" id="profileHomeBoxInfo" style="display: none; margin-top: 4px;">Home Box: <span id="homeBoxNameText" style="color:var(--lime);">Loading...</span></div>
               <div class="cycle-dates">Current Cycle: <span id="cycleStart">Jul 1</span> - <span id="cycleEnd">Jul 31</span></div>
             </div>
             
@@ -150,10 +151,8 @@
           </div>
           <div class="card-body p-0">
             <div class="squad-list" id="mySquadsList">
-              <div class="empty-state">
-                <div class="empty-icon">🏏</div>
-                <div class="empty-text">Loading squads…</div>
-              </div>
+              <div class="list-item skeleton-loader" style="height: 60px; margin-bottom: 12px; border-radius: 12px; border: none;"></div>
+              <div class="list-item skeleton-loader" style="height: 60px; margin-bottom: 12px; border-radius: 12px; border: none;"></div>
             </div>
           </div>
         </div>
@@ -342,18 +341,19 @@
           <strong id="currentPlanModalLabel" style="color:var(--cyan); font-size:14.5px;">Loading...</strong>
         </div>
         <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
-          <div onclick="selectUpgradePlan('Basic PRO', 15, '₹400/hr locked rate')" style="background:var(--bg); border:1px solid var(--card-line); border-radius:12px; padding:16px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--lime)'" onmouseout="this.style.borderColor='var(--card-line)'">
+          <div onclick="selectUpgradePlan('Basic PRO', 15, '₹450/hr locked rate')" style="background:var(--bg); border:1px solid var(--card-line); border-radius:12px; padding:16px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--lime)'" onmouseout="this.style.borderColor='var(--card-line)'">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
               <strong style="color:var(--text); font-size:15px;">Basic PRO 🔥</strong>
               <span style="color:var(--lime); font-weight:800; font-family:'Space Mono';">₹200/mo</span>
             </div>
-            <div style="font-size:12px; color:var(--text-dim);">15 box visits per month · ₹400/hr locked rate</div>
+            <div style="font-size:12px; color:var(--text-dim);">15 box visits per month · ₹450/hr locked rate</div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="firebase-config.js"></script>
 
 
